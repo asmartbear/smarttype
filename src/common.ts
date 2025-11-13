@@ -1,4 +1,6 @@
 
+export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType }
+
 /** Transform that just passes through, when we don't actually want one. */
 export function NOOP_TRANSFORM<T>(x: T): typeof x {
     return x
@@ -60,10 +62,21 @@ export interface INativeParser<T> {
 }
 
 /**
+ * Implements marshalling a native type to and from a JSON-compatible object.
+ */
+export interface IMarshallJson<T, J extends JSONType> {
+    /** Sends the native type to a JSON format */
+    toJSON(x: T): J
+
+    /** Converts something from `toJSON()` back into the native type */
+    fromJSON(js: J): T
+}
+
+/**
  * A type capable of parsing, validating, conversion, marshalling, and more.
  * Represents a specific Typescript type on input and output.
  */
-export abstract class SmartType<INPUT, T> implements INativeParser<T> {
+export abstract class SmartType<INPUT = any, T = any, J extends JSONType = JSONType> implements INativeParser<T>, IMarshallJson<T, J> {
 
     /**
      * Creates a transformation on top of an input type.
@@ -95,4 +108,7 @@ export abstract class SmartType<INPUT, T> implements INativeParser<T> {
             throw e
         }
     }
+
+    abstract toJSON(x: T): J;
+    abstract fromJSON(js: J): T;
 }

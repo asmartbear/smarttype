@@ -1,6 +1,14 @@
 import { NOOP_TRANSFORM, ValidationError, INativeParser, SmartType } from "./common"
 
-class SmartNumber<INPUT> extends SmartType<INPUT, number> {
+class SmartNumber<INPUT> extends SmartType<INPUT, number, number> {
+
+    toJSON(x: number): number {
+        return x
+    }
+
+    fromJSON(x: number): number {
+        return x
+    }
 
     /** Validate that the number is at least as large as this, inclusive. */
     min(min: number) {

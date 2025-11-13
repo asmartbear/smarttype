@@ -1,12 +1,27 @@
 import { NOOP_TRANSFORM, ValidationError, INativeParser, SmartType } from "./common"
 
-class SmartString<INPUT> extends SmartType<INPUT, string> {
+class SmartString<INPUT> extends SmartType<INPUT, string, string> {
+
+    toJSON(x: string): string {
+        return x
+    }
+
+    fromJSON(x: string): string {
+        return x
+    }
 
     /** Validate that the string is at least this many characters. */
     minLen(min: number) {
         return new SmartString(this,
             `minLen=${min}`,
             (s) => { if (s.length < min) throw new ValidationError(this, s); return s }
+        )
+    }
+
+    trim() {
+        return new SmartString(this,
+            `trim`,
+            (s) => { return s.trim() }
         )
     }
 

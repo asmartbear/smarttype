@@ -2,7 +2,7 @@ import * as V from "../src/index"
 import * as T from "./testutil"
 
 /** These values pass validation and are identical in their final form. */
-function passes(strict: boolean, ty: V.SmartType<any, any>, ...x: unknown[]) {
+function passes(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
     for (const y of x) {
         try {
             T.be(ty.input(y, strict), y)
@@ -16,7 +16,7 @@ function passes(strict: boolean, ty: V.SmartType<any, any>, ...x: unknown[]) {
 }
 
 /** These value fail validation. */
-function fails(strict: boolean, a: V.SmartType<any, any>, ...x: unknown[]) {
+function fails(strict: boolean, a: V.SmartType, ...x: unknown[]) {
     for (const y of x) {
         T.throws(() => a.input(y, strict), V.ValidationError, JSON.stringify(y))
         T.eq(a.inputReturnError(y, strict) instanceof V.ValidationError, true)
@@ -96,6 +96,16 @@ test('smart string', () => {
     T.be(ty.input(Number.NEGATIVE_INFINITY, false), "-Infinity")
     T.be(ty.input(Number.NaN, false), "NaN")
 
+    // trim
+    ty = V.STR().trim()
+    T.eq(ty.input(""), "")
+    T.eq(ty.input("foo"), "foo")
+    T.eq(ty.input("foo "), "foo")
+    T.eq(ty.input(" foo"), "foo")
+    T.eq(ty.input(" foo "), "foo")
+    T.eq(ty.input("\tfoo\r\n"), "foo")
+    T.eq(ty.input("\t\r\n"), "")
+
     // minimum length
     ty = V.STR().minLen(5)
     passes(true, ty, "seven", "eighty")
@@ -125,4 +135,11 @@ test('smart string', () => {
     T.eq(ty.input("12foo12"), "12foo24")
     T.eq(ty.input("foo0"), "foo0", "string wasn't changed, but also the pattern wasn't missing")
 
+})
+
+test('primative marshalling', () => {
+    T.eq(V.NUM().toJSON(123), 123)
+    T.eq(V.NUM().fromJSON(123), 123)
+    T.eq(V.STR().toJSON("123"), "123")
+    T.eq(V.STR().fromJSON("123"), "123")
 })
