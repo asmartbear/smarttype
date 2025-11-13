@@ -100,4 +100,9 @@ test('smart string', () => {
     ty = V.STR().minLen(5)
     passes(true, ty, "seven", "eighty")
     fails(true, ty, "", "1", "12", "two", "four")
+
+    // regex
+    ty = V.STR().re(/[a-zA-Z]+[0-9]+$/)
+    passes(true, ty, "foo1", "bar321", "taco/good123")
+    fails(true, ty, "foo", "321bar", "taco123/good")
 })

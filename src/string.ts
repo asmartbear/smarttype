@@ -9,6 +9,14 @@ class SmartString<INPUT> extends SmartType<INPUT, string> {
             (s) => { if (s.length < min) throw new ValidationError(this, s); return s }
         )
     }
+
+    /** Validate that the string matches a regualar expression */
+    re(re: RegExp) {
+        return new SmartString(this,
+            `re=${re}`,
+            (s) => { if (!re.test(s)) throw new ValidationError(this, s); return s }
+        )
+    }
 }
 
 /** Inputs anything into a number. */
