@@ -1,6 +1,11 @@
 
 export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType }
 
+/**
+ * The values of object or array `T`
+ */
+export type ValuesOf<T> = T[keyof T];
+
 /** Transform that just passes through, when we don't actually want one. */
 export function NOOP_TRANSFORM<T>(x: T): typeof x {
     return x
@@ -115,3 +120,11 @@ export abstract class SmartType<INPUT = any, T = any, J extends JSONType = JSONT
     abstract toJSON(x: T): J;
     abstract fromJSON(js: J): T;
 }
+
+/**
+ * Extracts the native type out of a SmartType.
+ */
+export type NativeFor<ST> =
+    ST extends SmartType<any, infer T, any> ? T
+    : ST extends SmartType<any, infer T, any>[] ? NativeFor<ValuesOf<ST>>
+    : never;

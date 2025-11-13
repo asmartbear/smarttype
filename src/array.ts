@@ -49,6 +49,3 @@ class NativeArray<T> implements INativeParser<T[]> {
 export function ARRAY<T>(elementType: SmartType<T>) {
     return new SmartArray<any, T>(elementType, new NativeArray(elementType))
 }
-
-
-

@@ -182,3 +182,26 @@ test('smart array', () => {
     toFromJSON(ty, [1, 2, 3], [1, 2, 3])
     toFromJSON(ty, [1, Number.NaN, 3], [1, "NaN", 3])
 })
+
+test('smart or', () => {
+    let ty = V.OR(V.NUM(), V.STR())
+    T.eq(ty.description, "(number|string)")
+
+    // strict
+    passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar")
+    fails(true, ty, undefined, null, false, true, [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
+
+    // not strict
+    T.eq(ty.input(123, false), 123)
+    T.eq(ty.input("123", false), 123, "number comes first, so it wins when not strict")
+    T.eq(ty.input(true, false), 1, "number comes first, so it wins when not strict")        // number comes first, so it wins when not strict
+    T.eq(ty.input(null, false), "null", "string wins if number fails")
+
+    // JSON
+    toFromJSON(ty, 123, { t: "number", x: 123 })
+    toFromJSON(ty, "123", { t: "string", x: "123" })
+    T.throws(() => ty.fromJSON(123 as any))
+    T.throws(() => ty.fromJSON({} as any))
+    T.throws(() => ty.fromJSON({ t: "foo", x: 123 }))
+    T.throws(() => ty.toJSON(true as any))
+})
