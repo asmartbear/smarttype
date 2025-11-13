@@ -29,11 +29,11 @@ test('smart number', () => {
 
     // strict
     passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
-    fails(true, ty, undefined, null, false, true, "", "a", "foo bar", "0", "123", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
+    fails(true, ty, undefined, null, false, true, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
 
     // not strict
     passes(false, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
-    fails(false, ty, undefined, null, "", "a", "foo bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
+    fails(false, ty, undefined, null, "", "a", "foo bar", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
     T.be(ty.input(false, false), 0)
     T.be(ty.input(true, false), 1)
     T.be(ty.input("0", false), 0)
@@ -81,11 +81,11 @@ test('smart string', () => {
     T.eq(ty.description, "string")
 
     // strict
-    passes(true, ty, "", "a", "foo bar")
+    passes(true, ty, "", "a", "foo bar", "foo\nbar")
     fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
 
     // not strict
-    passes(true, ty, "", "a", "foo bar")
+    passes(true, ty, "", "a", "foo bar", "foo\nbar")
     T.be(ty.input(undefined, false), "undefined")
     T.be(ty.input(null, false), "null")
     T.be(ty.input(false, false), "false")

@@ -97,11 +97,11 @@ export abstract class SmartType<INPUT, T> implements INativeParser<T> {
     }
 }
 
-class SmartNumberBuilder<INPUT> extends SmartType<INPUT, number> {
+class SmartNumber<INPUT> extends SmartType<INPUT, number> {
 
     /** Validate that the number is at least as large as this, inclusive. */
     min(min: number) {
-        return new SmartNumberBuilder(this,
+        return new SmartNumber(this,
             `min=${min}`,
             (x) => { if (x < min || Number.isNaN(x)) throw new ValidationError(this, x); return x }
         )
@@ -109,7 +109,7 @@ class SmartNumberBuilder<INPUT> extends SmartType<INPUT, number> {
 
     /** Validate that the number is at not larger than this, inclusive. */
     max(max: number) {
-        return new SmartNumberBuilder(this,
+        return new SmartNumber(this,
             `max=${max}`,
             (x) => { if (x > max || Number.isNaN(x)) throw new ValidationError(this, x); return x }
         )
@@ -117,7 +117,7 @@ class SmartNumberBuilder<INPUT> extends SmartType<INPUT, number> {
 
     /** If the input is less or greater than some limit, set it to that limit.  Or `undefined` to ignore that limit. */
     clamp(min: number | undefined, max: number | undefined) {
-        return new SmartNumberBuilder(this,
+        return new SmartNumber(this,
             "clamped",
             (x) => {
                 if (min !== undefined && x < min) x = min
@@ -139,8 +139,10 @@ class NativeNumber implements INativeParser<number> {
                 return x ? 1 : 0
             }
             if (typeof x === "string") {
-                const y = parseFloat(x)
-                if (!Number.isNaN(y)) return y
+                const y = parseFloat(x)     // try the native way
+                if (!Number.isNaN(y) && x.match(/^[0-9\.-]+$/)) {       // double-check it's not like "12foo"
+                    return y
+                }
             }
         }
         throw new ValidationError(this, x)
@@ -151,14 +153,14 @@ class NativeNumber implements INativeParser<number> {
 
 /** Simple number */
 export function NUM() {
-    return new SmartNumberBuilder(NativeNumber.SINGLETON, NativeNumber.SINGLETON.description, NOOP_TRANSFORM)
+    return new SmartNumber(NativeNumber.SINGLETON, NativeNumber.SINGLETON.description, NOOP_TRANSFORM)
 }
 
-class SmartStringBuilder<INPUT> extends SmartType<INPUT, string> {
+class SmartString<INPUT> extends SmartType<INPUT, string> {
 
     /** Validate that the string is at least this many characters. */
     minLen(min: number) {
-        return new SmartStringBuilder(this,
+        return new SmartString(this,
             `minLen=${min}`,
             (s) => { if (s.length < min) throw new ValidationError(this, s); return s }
         )
@@ -182,7 +184,7 @@ class NativeString implements INativeParser<string> {
 
 /** Generic string */
 export function STR() {
-    return new SmartStringBuilder(NativeString.SINGLETON, NativeString.SINGLETON.description, NOOP_TRANSFORM)
+    return new SmartString(NativeString.SINGLETON, NativeString.SINGLETON.description, NOOP_TRANSFORM)
 }
 
 
