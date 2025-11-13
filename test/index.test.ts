@@ -1,5 +1,6 @@
 import * as V from "../src/index"
 import * as T from "./testutil"
+import { IMarshallJson, JSONType } from "../src/common"
 
 /** These values pass validation and are identical in their final form. */
 function passes(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
@@ -21,6 +22,12 @@ function fails(strict: boolean, a: V.SmartType, ...x: unknown[]) {
         T.throws(() => a.input(y, strict), V.ValidationError, JSON.stringify(y))
         T.eq(a.inputReturnError(y, strict) instanceof V.ValidationError, true)
     }
+}
+
+function toFromJSON<U, J extends JSONType>(m: IMarshallJson<U, J>, from: U, to: J) {
+    const js = m.toJSON(from)
+    T.eq(js, to)
+    T.eq(m.fromJSON(to), from)
 }
 
 test('smart number', () => {
@@ -54,6 +61,17 @@ test('smart number', () => {
     ty = V.NUM().min(0).max(10)
     passes(true, ty, 0, 1, 2, 2.999, 10)
     fails(true, ty, -Number.EPSILON, 10.001, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
+})
+
+test('number to JSON', () => {
+    let ty = V.NUM()
+    toFromJSON(ty, 123, 123)
+    toFromJSON(ty, -12.34, -12.34)
+    toFromJSON(ty, Number.POSITIVE_INFINITY, "Infinity")
+    toFromJSON(ty, Number.NEGATIVE_INFINITY, "-Infinity")
+    toFromJSON(ty, Number.NaN, "NaN")
+    // Bad JSON
+    T.throws(() => ty.fromJSON("foo"))
 })
 
 test('number clamped', () => {
@@ -135,6 +153,9 @@ test('smart string', () => {
     T.eq(ty.input("12foo12"), "12foo24")
     T.eq(ty.input("foo0"), "foo0", "string wasn't changed, but also the pattern wasn't missing")
 
+    // JSON
+    ty = V.STR()
+    toFromJSON(ty, "123", "123")
 })
 
 test('smart array', () => {
@@ -154,11 +175,10 @@ test('smart array', () => {
     ty = V.ARRAY(V.NUM()).minLen(3)
     passes(true, ty, [1, 2, 3], [4, 3, 2, -1])
     fails(true, ty, [], [1], [2, 1])
-})
 
-test('primative marshalling', () => {
-    T.eq(V.NUM().toJSON(123), 123)
-    T.eq(V.NUM().fromJSON(123), 123)
-    T.eq(V.STR().toJSON("123"), "123")
-    T.eq(V.STR().fromJSON("123"), "123")
+    // JSON
+    ty = V.ARRAY(V.NUM())
+    toFromJSON(ty, [], [])
+    toFromJSON(ty, [1, 2, 3], [1, 2, 3])
+    toFromJSON(ty, [1, Number.NaN, 3], [1, "NaN", 3])
 })

@@ -77,25 +77,25 @@ export interface IMarshallJson<T, J extends JSONType> {
  * Represents a specific Typescript type on input and output.
  */
 export abstract class SmartType<INPUT = any, T = any, J extends JSONType = JSONType> implements INativeParser<T>, IMarshallJson<T, J> {
-    private readonly origin: INativeParser<INPUT>
+    private readonly source: INativeParser<INPUT>
     public readonly description: string
     private readonly transform: (x: INPUT) => T
 
     /**
      * Creates a transformation on top of an input type.
      * 
-     * @param origin the upstream thing that parses, validates, transforms, etc, that we're chaining onto
+     * @param source the upstream thing that parses, validates, transforms, etc, that we're chaining onto
      * @param description describes it for output, or `undefined` to inherit from the origin
      * @param transform function that performs the transformation, throwing `ValidationException` if it violates a validation
      */
-    constructor(origin: INativeParser<INPUT>, description?: string, transform?: (x: INPUT) => T) {
-        this.origin = origin
-        this.description = description ?? origin.description
+    constructor(source: INativeParser<INPUT>, description?: string, transform?: (x: INPUT) => T) {
+        this.source = source
+        this.description = description ?? source.description
         this.transform = transform ?? (NOOP_TRANSFORM as any)
     }
 
     input(x: unknown, strict: boolean = true): T {
-        return this.transform(this.origin.input(x, strict))
+        return this.transform(this.source.input(x, strict))
     }
 
     /**

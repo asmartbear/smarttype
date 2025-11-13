@@ -85,14 +85,16 @@ export function isInteger(actual: number, min?: number, max?: number, message?: 
 /**
  * Asserts that a function throws a specific class of error.
  */
-export function throws<T extends Error>(f: (...args: any) => unknown, errorClass: ClassOf<T>, message?: string) {
+export function throws<T extends Error>(f: (...args: any) => unknown, errorClass?: ClassOf<T>, message?: string) {
     try {
         f()
         throw new Error(`Expected expression to throw an exception, but it didn't\n\n${message ?? ""}`.trim(), { cause: "unit test" })
     } catch (e) {
         if (e instanceof Error) {
             if (e.cause === "unit test") throw e       // pass it through
-            be(e.constructor.name, errorClass.name, `Threw exception, but wrong class.\n\n${e.name} - ${e.message} - ${e.cause}\n\n${message ?? ""}`.trim())
+            if (errorClass) {
+                be(e.constructor.name, errorClass.name, `Threw exception, but wrong class.\n\n${e.name} - ${e.message} - ${e.cause}\n\n${message ?? ""}`.trim())
+            }
         }
     }
 }

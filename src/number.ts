@@ -1,12 +1,20 @@
 import { ValidationError, INativeParser, SmartType } from "./common"
 
-class SmartNumber<INPUT> extends SmartType<INPUT, number, number> {
+class SmartNumber<INPUT> extends SmartType<INPUT, number, number | string> {
 
-    toJSON(x: number): number {
+    toJSON(x: number) {
+        if (Number.isNaN(x)) return "NaN"
+        if (x === Number.POSITIVE_INFINITY || x === Number.NEGATIVE_INFINITY) return String(x)
         return x
     }
 
-    fromJSON(x: number): number {
+    fromJSON(x: number | string): number {
+        switch (x) {
+            case 'Infinity': return Number.POSITIVE_INFINITY
+            case '-Infinity': return Number.NEGATIVE_INFINITY
+            case 'NaN': return Number.NaN
+        }
+        if (typeof x !== "number") throw new ValidationError(this, x, "expected number")
         return x
     }
 
