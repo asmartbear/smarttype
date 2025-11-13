@@ -1,4 +1,9 @@
 
+/** Transform that just passes through, when we don't actually want one. */
+function NOOP_TRANSFORM<T>(x: T): typeof x {
+    return x
+}
+
 /**
  * The exception thrown when `input()` goes wrong.  Includes the fundamental problem,
  * and a full path to where the issue lies.
@@ -7,7 +12,7 @@ export class ValidationError extends Error {
     private readonly myMessage: string
 
     constructor(
-        type: SmartType<any>,
+        type: INativeParser<any>,
         valueEncountered: any,
         expectedPrefix?: string,
         public path: string[] = []
@@ -33,13 +38,13 @@ export class ValidationError extends Error {
 }
 
 /**
- * A type capable of parsing, validating, conversion, marshalling, and more.
- * Represents a specific Typescript type on input and output.
+ * Implements a parser for a native type, converting `unknown` into the desired native type,
+ * or throwing `ValidationError` if it fails.
  */
-export abstract class SmartType<T> {
+interface INativeParser<T> {
 
-    /** Returns a structured, human-readable description of the type */
-    abstract get description(): string;
+    /** A human-readable description of the parser or type */
+    description: string
 
     /**
      * Attempts to convert an input value into this smart type, validating against
@@ -51,6 +56,15 @@ export abstract class SmartType<T> {
      * @returns the validated value.
      * @throws {ValidationError} If the input is invalid
      */
+    input(x: unknown, strict?: boolean): T
+}
+
+/**
+ * A type capable of parsing, validating, conversion, marshalling, and more.
+ * Represents a specific Typescript type on input and output.
+ */
+export abstract class SmartType<T> implements INativeParser<T> {
+    abstract get description(): string;
     abstract input(x: unknown, strict?: boolean): T
 
     /**
@@ -66,11 +80,29 @@ export abstract class SmartType<T> {
     }
 }
 
-abstract class SmartNumberBuilder extends SmartType<number> {
+class SmartNumberBuilder<INPUT> extends SmartType<number> {
+
+    /**
+     * Creates a transformation on top of an input type.
+     * 
+     * @param description describes it for output
+     * @param transform function that performs the transformation, throwing `ValidationException` if it violates a validation
+     */
+    constructor(
+        private readonly origin: INativeParser<INPUT>,
+        public readonly description: string,
+        private readonly transform: (x: INPUT) => number,
+    ) {
+        super()
+    }
+
+    input(x: unknown, strict: boolean = true): number {
+        return this.transform(this.origin.input(x, strict))
+    }
 
     /** Validate that the number is at least as large as this, inclusive. */
     min(min: number) {
-        return new SmartNumberTransformer(this,
+        return new SmartNumberBuilder(this,
             `min=${min}`,
             (x) => { if (x < min || Number.isNaN(x)) throw new ValidationError(this, x); return x }
         )
@@ -78,7 +110,7 @@ abstract class SmartNumberBuilder extends SmartType<number> {
 
     /** Validate that the number is at not larger than this, inclusive. */
     max(max: number) {
-        return new SmartNumberTransformer(this,
+        return new SmartNumberBuilder(this,
             `max=${max}`,
             (x) => { if (x > max || Number.isNaN(x)) throw new ValidationError(this, x); return x }
         )
@@ -86,7 +118,7 @@ abstract class SmartNumberBuilder extends SmartType<number> {
 
     /** If the input is less or greater than some limit, set it to that limit.  Or `undefined` to ignore that limit. */
     clamp(min: number | undefined, max: number | undefined) {
-        return new SmartNumberTransformer(this,
+        return new SmartNumberBuilder(this,
             "clamped",
             (x) => {
                 if (min !== undefined && x < min) x = min
@@ -97,8 +129,8 @@ abstract class SmartNumberBuilder extends SmartType<number> {
     }
 }
 
-/** Inputs anything into a number. */
-class SmartNumber extends SmartNumberBuilder {
+/** Converts a native type to a number. */
+class NativeNumber implements INativeParser<number> {
     public readonly description = "number"
 
     input(x: unknown, strict: boolean = true): number {
@@ -114,34 +146,14 @@ class SmartNumber extends SmartNumberBuilder {
         }
         throw new ValidationError(this, x)
     }
-}
 
-class SmartNumberTransformer extends SmartNumberBuilder {
-    /**
-     * Creates a transformation on top of an input type.
-     * 
-     * @param origin the type we're transforming from
-     * @param description describes it for output
-     * @param fTransform function that performs the transformation, throwing `ValidationException` if it violates a validation
-     */
-    constructor(
-        private readonly origin: SmartType<number>,
-        public readonly description: string,
-        private readonly transform: (x: number) => number,
-    ) {
-        super()
-    }
-
-    input(x: unknown, strict: boolean = true): number {
-        return this.transform(this.origin.input(x, strict))
-    }
+    static SINGLETON = new NativeNumber()
 }
 
 /** Generic number */
 export function NUM() {
-    return new SmartNumber()
+    return new SmartNumberBuilder(NativeNumber.SINGLETON, NativeNumber.SINGLETON.description, NOOP_TRANSFORM)
 }
-
 
 abstract class SmartStringBuilder extends SmartType<string> {
 
