@@ -54,7 +54,7 @@ class AlternationSource<ST extends readonly SmartType<any>[]> implements INative
     }
 }
 
-/** Generic string */
+/** Any of these types are acceptable. */
 export function OR<ST extends SmartType<any>[]>(...types: ST) {
     return new SmartAlternation(types, new AlternationSource(types))
 }

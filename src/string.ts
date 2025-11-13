@@ -7,7 +7,7 @@ class SmartString<INPUT> extends SmartType<INPUT, string, string> {
     }
 
     fromJSON(x: string): string {
-        return x
+        return this.input(x)
     }
 
     /** Validate that the string is at least this many characters. */
