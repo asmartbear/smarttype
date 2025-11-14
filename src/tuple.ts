@@ -9,6 +9,9 @@ class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONTuple> exte
         super('[' + types.map(t => t.description).join(',') + ']')
     }
 
+    // istanbul ignore next
+    get constructorArgs() { return [this.types] }
+
     input(x: unknown, strict: boolean): NativeTupleFor<ST> {
         if (!Array.isArray(x)) throw new ValidationError(this, x, "Expected array")
         if (x.length !== this.types.length) throw new ValidationError(this, x, "Tuple of the wrong length")

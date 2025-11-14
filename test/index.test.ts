@@ -198,6 +198,10 @@ test('smart array', () => {
     toFromJSON(ty, [1, 2, 3], [1, 2, 3])
     toFromJSON(ty, [1, Number.NaN, 3], [1, "NaN", 3])
     T.eq(ty.toSimplified([1, 2, 3]), [1, 2, 3])
+
+    // JSON after transformation
+    ty = V.ARRAY(V.NUM()).minLen(3)
+    toFromJSON(ty, [1, 2, 3], [1, 2, 3])
 })
 
 test('smart tuple x2', () => {

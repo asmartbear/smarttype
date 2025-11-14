@@ -9,7 +9,7 @@ class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends Smar
         super(elementType.description + '[]')
     }
 
-    // get constructorArgs(): ConstructorParameters< this["elementType"]> { return [this.elementType] }
+    get constructorArgs() { return [this.elementType] }
 
     input(x: unknown, strict: boolean): T[] {
         if (!Array.isArray(x)) throw new ValidationError(this, x, "Expected array")

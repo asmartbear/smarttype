@@ -14,6 +14,9 @@ class SmartMap<
         super(`{${tKey.description}:${tValue.description}}`)
     }
 
+    // istanbul ignore next
+    get constructorArgs() { return [this.tKey, this.tValue] }
+
     input(x: unknown, strict: boolean = true) {
         if (!x || typeof x !== "object" || Array.isArray(x)) throw new ValidationError(this, x, "Expected plain object or Map")
         if (x instanceof Map) {

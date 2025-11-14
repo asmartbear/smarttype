@@ -13,6 +13,9 @@ class SmartAlternation<ST extends SmartType<any>[]> extends SmartType<NativeFor<
         super('(' + types.map(t => t.description).join('|') + ')')
     }
 
+    // istanbul ignore next
+    get constructorArgs() { return [this.types] }
+
     input(x: unknown, strict: boolean = true): NativeFor<ST> {
         for (const t of this.types) {
             const y = t.inputReturnError(x, strict)
