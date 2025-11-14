@@ -22,7 +22,7 @@ class SmartUndefined extends SmartType<undefined, typeof JS_UNDEFINED_SIGNAL> {
     }
 }
 
-/** Simple boolean */
+/** The `undefined` value */
 export function UNDEF() {
     return new SmartUndefined()
 }
