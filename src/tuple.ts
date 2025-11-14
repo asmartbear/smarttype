@@ -1,4 +1,4 @@
-import { ValidationError, SmartType, JSONType, NativeTupleFor, JsonFor } from "./common"
+import { ValidationError, SmartType, JSONType, NativeTupleFor, JsonTupleFor } from "./common"
 
 class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONType[]> extends SmartType<NativeTupleFor<ST>, J> {
 
@@ -26,5 +26,5 @@ class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONType[]> ext
 
 /** An array of fixed length and types */
 export function TUPLE<ST extends readonly SmartType<any>[]>(...types: ST) {
-    return new SmartTuple(types)
+    return new SmartTuple<ST, JsonTupleFor<ST> & JSONType[]>(types)
 }
