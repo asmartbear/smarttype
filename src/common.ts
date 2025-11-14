@@ -121,7 +121,7 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
     /** Sets the default value to use if this type isn't represent in a parent object or other structure. */
     def(x: T): this {
         this[__DEFAULT_VALUE] = x
-        this.description += '=' + simplifiedToDisplay(simplifyOpaqueType(x))
+        this.description += '=' + simplifiedToDisplay(this.toSimplified(x))
         return this
     }
 
