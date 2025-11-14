@@ -68,11 +68,10 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
-    "testRegex": "test/.+\\.(ts|tsx|js)$",
+    "testRegex": "test/.+\\.test\\.(ts|tsx|js)$",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/dist/",
-      "/test/testutil.ts"
+      "/dist/"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",

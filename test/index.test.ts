@@ -1,35 +1,8 @@
 import * as V from "../src/index"
 import * as T from "./testutil"
-import { IMarshallJson, isPrimative, JSONType } from "../src/common"
+import { passes, fails, toFromJSON } from "./moreutil"
+import { isPrimative } from "../src/common"
 import { JS_UNDEFINED_SIGNAL } from "../src/undef";
-
-/** These values pass validation and are identical in their final form. */
-function passes(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
-    for (const y of x) {
-        try {
-            T.eq(ty.input(y, strict), y)
-        } catch (e) {
-            throw new Error(
-                `Expected validation to succeed for value: ${JSON.stringify(y)} ` +
-                `(type: ${typeof y})`
-            );
-        }
-    }
-}
-
-/** These value fail validation. */
-function fails(strict: boolean, a: V.SmartType, ...x: unknown[]) {
-    for (const y of x) {
-        T.throws(() => a.input(y, strict), V.ValidationError, JSON.stringify(y))
-        T.eq(a.inputReturnError(y, strict) instanceof V.ValidationError, true)
-    }
-}
-
-function toFromJSON<U, J extends JSONType>(m: IMarshallJson<U, J>, from: U, to: J) {
-    const js = m.toJSON(from)
-    T.eq(js, to)
-    T.eq(m.fromJSON(to), from)
-}
 
 test('isPrimative', () => {
     T.eq(isPrimative(undefined), false)
