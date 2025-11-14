@@ -1,6 +1,8 @@
 import { simplifiedToDisplay, simplify, simplifyOpaqueType } from "@asmartbear/simplified";
 
-export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType }
+export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType } | { [K: number]: JSONType }
+export type JSONTuple = { [K: number]: JSONType }
+export type JSONObject = { [K: string]: JSONType }
 
 /**
  * The values of object or array `T`

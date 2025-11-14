@@ -1,6 +1,6 @@
-import { ValidationError, SmartType, JSONType, NativeTupleFor, JsonTupleFor } from "./common"
+import { ValidationError, SmartType, JSONType, JSONTuple, NativeTupleFor, JsonTupleFor } from "./common"
 
-class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONType[]> extends SmartType<NativeTupleFor<ST>, J> {
+class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONTuple> extends SmartType<NativeTupleFor<ST>, J> {
 
     // We carry along the smart type belonging to the array elements.
     constructor(
@@ -16,15 +16,15 @@ class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONType[]> ext
     }
 
     toJSON(x: NativeTupleFor<ST>): J {
-        return x.map((y, i) => this.types[i].toJSON(y)) as J
+        return x.map((y, i) => this.types[i].toJSON(y)) as any as J
     }
 
     fromJSON(js: J) {
-        return js.map((x, i) => this.types[i].fromJSON(x)) as NativeTupleFor<ST>
+        return (js as any as JSONType[]).map((x, i) => this.types[i].fromJSON(x)) as NativeTupleFor<ST>
     }
 }
 
 /** An array of fixed length and types */
 export function TUPLE<ST extends readonly SmartType<any>[]>(...types: ST) {
-    return new SmartTuple<ST, JsonTupleFor<ST> & JSONType[]>(types)
+    return new SmartTuple<ST, JsonTupleFor<ST>>(types)
 }
