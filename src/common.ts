@@ -161,20 +161,30 @@ export function transformer<T, TYPE extends SmartType<T>>(
 }
 
 /**
- * Extracts the native type out of a SmartType, or the union of native types
- * if given an array of SmartTypes.
+ * Extracts the native type out of a SmartType, or the union of native types if an array or other amalgamation.
  */
 export type NativeFor<ST> =
     ST extends SmartType<infer T, any> ? T
-    : ST extends SmartType<any, any>[] ? NativeFor<ValuesOf<ST>>
+    : ST extends SmartType[] ? NativeFor<ValuesOf<ST>>
+    : ST extends { readonly [K: string]: SmartType } ? { [K in keyof ST]: NativeFor<ST[K]>; }
     : never;
 
 /** From a tuple of SmartType, gives a tuple of the native types */
-export type NativeTupleFor<T extends readonly SmartType<any, any>[]> = {
-    [K in keyof T]: T[K] extends SmartType<infer U, any> ? U : never;
+export type NativeTupleFor<ST extends readonly SmartType[]> = {
+    [K in keyof ST]: NativeFor<ST[K]>;
 };
 
-/** From an object with SmartType values, gives an object with the same fields but native values. */
-export type NativeObjectFor<T extends { readonly [K: string]: SmartType<any> }> = {
-    [K in keyof T]: T[K] extends SmartType<infer U, any> ? U : never;
+/**
+ * Extracts the JSON out of a SmartType, or the union of JSON types if an array or other amalgamation.
+ */
+export type JsonFor<ST> =
+    ST extends SmartType<any, infer J> ? J
+    : ST extends SmartType[] ? JsonFor<ValuesOf<ST>>
+    : ST extends { readonly [K: string]: SmartType } ? { [K in keyof ST]: JsonFor<ST[K]>; }
+    : never;
+
+
+/** From a tuple of SmartType, gives a tuple of the native types */
+export type JsonTupleFor<ST extends readonly SmartType[]> = {
+    [K in keyof ST]: JsonFor<ST[K]>;
 };

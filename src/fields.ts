@@ -1,6 +1,6 @@
-import { ValidationError, SmartType, JSONType, NativeObjectFor, __DEFAULT_VALUE } from "./common"
+import { ValidationError, SmartType, JSONType, NativeFor, __DEFAULT_VALUE, JsonFor } from "./common"
 
-class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends SmartType<NativeObjectFor<ST>, { readonly [K: string]: JSONType }> {
+class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends SmartType<NativeFor<ST>, JsonFor<ST>> {
 
     // We carry along the smart type belonging to the field elements.
     constructor(
@@ -26,23 +26,23 @@ class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends S
             }
         }
         //  throw new ValidationError(this, x, `Found spurious field [${k}]`)
-        return Object.fromEntries(ent) as NativeObjectFor<ST>
+        return Object.fromEntries(ent) as NativeFor<ST>
     }
 
-    toJSON(x: NativeObjectFor<ST>): { readonly [K: string]: JSONType } {
+    toJSON(x: NativeFor<ST>): JsonFor<ST> {
         return Object.fromEntries(
             Object.entries(x).map(
                 ([k, y]) => [k, this.types[k].toJSON(y)]
             )
-        )
+        ) as JsonFor<ST>
     }
 
-    fromJSON(js: { readonly [K: string]: JSONType }) {
+    fromJSON(js: JsonFor<ST>) {
         return Object.fromEntries(
             Object.entries(js).map(
                 ([k, y]) => [k, this.types[k].fromJSON(y)]
             )
-        ) as NativeObjectFor<ST>
+        ) as NativeFor<ST>
     }
 }
 

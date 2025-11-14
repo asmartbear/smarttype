@@ -1,26 +1,26 @@
-import { ValidationError, transformer, SmartType, JSONType } from "./common"
+import { ValidationError, transformer, SmartType, JsonFor, JSONType } from "./common"
 
-class SmartArray<T> extends SmartType<T[], JSONType[]> {
+class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends SmartType<T[], J[]> {
 
     // We carry along the smart type belonging to the array elements.
     constructor(
-        public readonly elementType: SmartType<T>,
+        public readonly elementType: EL,
     ) {
         super(elementType.description + '[]')
     }
 
-    get constructorArgs(): ConstructorParameters<typeof SmartArray<T>> { return [this.elementType] }
+    // get constructorArgs(): ConstructorParameters< this["elementType"]> { return [this.elementType] }
 
     input(x: unknown, strict: boolean): T[] {
         if (!Array.isArray(x)) throw new ValidationError(this, x, "Expected array")
         return x.map(el => this.elementType.input(el, strict))
     }
 
-    toJSON(x: T[]): JSONType[] {
+    toJSON(x: T[]) {
         return x.map(el => this.elementType.toJSON(el))
     }
 
-    fromJSON(x: JSONType[]): T[] {
+    fromJSON(x: J[]): T[] {
         return x.map(el => this.elementType.fromJSON(el))
     }
 
@@ -37,6 +37,6 @@ class SmartArray<T> extends SmartType<T[], JSONType[]> {
 }
 
 /** Generic string */
-export function ARRAY<T>(elementType: SmartType<T>) {
-    return new SmartArray(elementType)
+export function ARRAY<T, J extends JSONType>(elementType: SmartType<T, J>) {
+    return new SmartArray<T, J, typeof elementType>(elementType)
 }

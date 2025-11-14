@@ -311,5 +311,6 @@ test('smart object with defaults', () => {
     T.eq(ty.input({ s: "taco" }), { x: 123, s: "taco", b: false }, "replacement didn't match")
     T.eq(ty.input({ s: "and hi" }), { x: 123, s: "and there", b: false }, "replacement when no default")
     T.eq(ty.input({ b: true, s: "there" }), { x: 123, s: "there", b: true })
+    T.eq(ty.input({ x: undefined, s: undefined, b: undefined }), { x: 123, s: "hi", b: false }, "explicit undefined instead of missing")
 })
 
