@@ -1,4 +1,5 @@
 export { ValidationError, SmartType } from "./common"
+export { UNDEF } from "./undef"
 export { BOOL } from "./boolean"
 export { NUM } from "./number"
 export { STR } from "./string"

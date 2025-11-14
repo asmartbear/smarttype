@@ -1,6 +1,7 @@
 import * as V from "../src/index"
 import * as T from "./testutil"
 import { IMarshallJson, JSONType } from "../src/common"
+import { JS_UNDEFINED_SIGNAL } from "../src/undef";
 
 /** These values pass validation and are identical in their final form. */
 function passes(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
@@ -29,6 +30,18 @@ function toFromJSON<U, J extends JSONType>(m: IMarshallJson<U, J>, from: U, to: 
     T.eq(js, to)
     T.eq(m.fromJSON(to), from)
 }
+
+test('smart undefined', () => {
+    let ty = V.UNDEF()
+    T.eq(ty.description, "undefined")
+
+    // strict
+    passes(true, ty, undefined)
+    fails(true, ty, false, true, null, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
+    T.be(ty.input(undefined), undefined, "default parameter")
+
+    toFromJSON(ty, undefined, JS_UNDEFINED_SIGNAL)
+})
 
 test('smart boolean', () => {
     let ty = V.BOOL()
