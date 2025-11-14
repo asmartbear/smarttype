@@ -103,6 +103,7 @@ test('number to JSON', () => {
     toFromJSON(ty, Number.NaN, "NaN")
     // Bad JSON
     T.throws(() => ty.fromJSON("foo"))
+    T.eq(ty.toSimplified(123), 123)
 })
 
 test('number clamped', () => {
@@ -188,6 +189,7 @@ test('smart string', () => {
     // JSON
     ty = V.STR()
     toFromJSON(ty, "123", "123")
+    T.eq(ty.toSimplified("123"), "123")
 })
 
 test('smart array', () => {
@@ -213,6 +215,7 @@ test('smart array', () => {
     toFromJSON(ty, [], [])
     toFromJSON(ty, [1, 2, 3], [1, 2, 3])
     toFromJSON(ty, [1, Number.NaN, 3], [1, "NaN", 3])
+    T.eq(ty.toSimplified([1, 2, 3]), [1, 2, 3])
 })
 
 test('smart or', () => {
@@ -236,6 +239,8 @@ test('smart or', () => {
     T.throws(() => ty.fromJSON({} as any))
     T.throws(() => ty.fromJSON({ t: "foo", x: 123 }))
     T.throws(() => ty.toJSON(true as any))
+    T.eq(ty.toSimplified(123), 123)
+    T.eq(ty.toSimplified("123"), "123")
 })
 
 test('smart tuple x2', () => {
@@ -256,6 +261,7 @@ test('smart tuple x2', () => {
     T.throws(() => ty.fromJSON(["123", "123"] as any))
     T.throws(() => ty.fromJSON({} as any))
     T.throws(() => ty.fromJSON(true as any))
+    T.eq(ty.toSimplified([1, "a"]), [1, "a"])
 })
 
 test('smart tuple x3', () => {
@@ -312,5 +318,7 @@ test('smart object with defaults', () => {
     T.eq(ty.input({ s: "and hi" }), { x: 123, s: "and there", b: false }, "replacement when no default")
     T.eq(ty.input({ b: true, s: "there" }), { x: 123, s: "there", b: true })
     T.eq(ty.input({ x: undefined, s: undefined, b: undefined }), { x: 123, s: "hi", b: false }, "explicit undefined instead of missing")
+
+    T.eq(ty.toHash(ty.input({})), "a56e71350dcdb6cb8481f283e14d52ee", "the exact value doesn't matter")
 })
 

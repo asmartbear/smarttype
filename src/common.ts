@@ -1,4 +1,4 @@
-import { simplifiedToDisplay, simplify, simplifyOpaqueType } from "@asmartbear/simplified";
+import { Simple, simplifiedToDisplay, simplifiedToHash, simplify, simplifyOpaqueType } from "@asmartbear/simplified";
 
 export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType } | { [K: number]: JSONType }
 export type JSONTuple = { [K: number]: JSONType }
@@ -123,6 +123,16 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
         this[__DEFAULT_VALUE] = x
         this.description += '=' + simplifiedToDisplay(simplifyOpaqueType(x))
         return this
+    }
+
+    /** Gets the simplified version of this data (a la `@asmartbear/simplified`) */
+    toSimplified(x: T): Simple {
+        return simplifyOpaqueType(x)        // don't need a type system for this per se, but could potentially tweak this based on configuration
+    }
+
+    /** Gets a hash value for the object, normalized for things like field-ordering and ignoring undefined fields */
+    toHash(x: T): string {
+        return simplifiedToHash(this.toSimplified(x))
     }
 
     get constructorArgs(): any[] { return [this.description] }
