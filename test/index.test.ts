@@ -258,3 +258,23 @@ test('smart tuple of 2', () => {
     T.throws(() => ty.fromJSON(true as any))
 })
 
+test('smart tuple of 3', () => {
+    let ty = V.TUPLE(V.NUM(), V.STR(), V.BOOL())
+    T.eq(ty.description, "[number,string,boolean]")
+
+    // strict
+    passes(true, ty, [123, "foo", true], [321, "123", false])
+    fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true])
+
+    // not strict
+    T.eq(ty.input([123, 123, 1], false), [123, "123", true])
+    T.eq(ty.input(["123", "123", 0], false), [123, "123", false])
+
+    // JSON
+    toFromJSON(ty, [123, "123", false], [123, "123", false])
+    T.throws(() => ty.fromJSON([123, 123] as any))
+    T.throws(() => ty.fromJSON(["123", "123"] as any))
+    T.throws(() => ty.fromJSON({} as any))
+    T.throws(() => ty.fromJSON(true as any))
+})
+
