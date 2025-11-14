@@ -1,6 +1,6 @@
 import { ValidationError, Primative, SmartType, isPrimative, NativeFor, JsonFor, ValuesOf, JSONTuple, JSONType } from "./common"
 
-class SmartLiteral<LIST extends readonly Primative[], T = ValuesOf<LIST>> extends SmartType<T, T & JSONType> {
+class SmartLiteral<T extends Primative> extends SmartType<T, T> {
 
     constructor(
         public readonly values: readonly T[],
@@ -10,24 +10,24 @@ class SmartLiteral<LIST extends readonly Primative[], T = ValuesOf<LIST>> extend
 
     input(x: unknown, strict: boolean = true) {
         if (isPrimative(x)) {
-            const y = this.values.find(x as any)
-            if (y !== undefined) {
-                return y        // found, and use our constant and consistent object
+            const i = this.values.indexOf(x as any)
+            if (i >= 0) {
+                return this.values[i]        // found, and use our constant and consistent object
             }
         }
         throw new ValidationError(this, x)
     }
 
-    toJSON(x: T): T & JSONType {
-        return x as any     // we know primatives are all JSON types
+    toJSON(x: T): T {
+        return x
     }
 
-    fromJSON(js: T & JSONType): T {
+    fromJSON(js: T): T {
         return this.input(js, true)      // check types and normalize
     }
 }
 
 /** One of a specific set of literal primative values. */
-export function LITERAL<LIST extends readonly Primative[]>(...values: LIST): SmartLiteral<LIST> {
-    return new SmartLiteral(values as any)
+export function LITERAL<T extends Primative>(...values: readonly T[]) {
+    return new SmartLiteral(values)
 }

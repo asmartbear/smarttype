@@ -227,6 +227,7 @@ test('smart or', () => {
     fails(true, ty, undefined, null, false, true, [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
 
     // not strict
+    T.eq(ty.input(123), 123)
     T.eq(ty.input(123, false), 123)
     T.eq(ty.input("123", false), 123, "number comes first, so it wins when not strict")
     T.eq(ty.input(true, false), 1, "number comes first, so it wins when not strict")        // number comes first, so it wins when not strict
@@ -327,18 +328,13 @@ test('smart literal primative', () => {
     T.eq(ty.description, "(none|left|right|both)")
 
     // strict
-    // passes(true, ty, new Date(123456789))
-    // fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false })
+    T.eq(ty.input("none"), "none")
+    passes(true, ty, "none", "left", "right", "both")
+    fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", " both", "none.", "non", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false })
 
-    // // parsing common date strings
-    // T.eq(ty.input("2025-11-14"), new Date(Date.UTC(2025, 11 - 1, 14)))
-    // T.eq(ty.input("2025-11-14 12:34:56+00"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    // T.eq(ty.input("2025-11-14T12:34:56+0000"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    // T.eq(ty.input("2025-11-14T12:34:56Z"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    // T.throws(() => ty.input("12:34:56+00"))
-
-    // // JSON
-    // toFromJSON(ty, new Date(1234567890), 1234567890)
+    // JSON
+    toFromJSON(ty, "none", "none")
+    toFromJSON(ty, "both", "both")
 })
 
 test('smart date', () => {
