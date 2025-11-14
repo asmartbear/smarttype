@@ -9,7 +9,7 @@ test("map from map", () => {
     const ty = MAP(NUM(), STR())
 
     passes(true, ty, new Map([]), new Map([[0, ""]]), new Map([[123, "abc"], [0, ""]]))
-    fails(true, ty, new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))
+    fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", [], [1, 2, 3], new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))
 
     // Type conversion only if not-strict
     T.throws(() => ty.input(new Map([["123", "abc"], ["0", ""]])))
@@ -34,6 +34,7 @@ test("map from object, even if strict", () => {
     T.eq(ty.input({}), new Map())
     T.eq(ty.input({ a: false }), new Map([["a", false]]))
     T.eq(ty.input({ a: false, b: true }), new Map([["a", false], ["b", true]]))
+    T.eq(ty.input({ a: false, b: true, 0: false }), new Map([["0", false], ["a", false], ["b", true]]), "javascript converted it to a string")
 
     T.throws(() => ty.input([]))
     T.throws(() => ty.input([true]))
