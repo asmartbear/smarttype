@@ -1,11 +1,11 @@
-import { ValidationError, INativeParser, SmartType, JSONType, NativeFor, ValuesOf } from "./common"
+import { ValidationError, INativeParser, SmartType, JSONType, NativeFor, JsonFor } from "./common"
 
-type AlternationJSON = {
+type AlternationJSON<J extends JSONType> = {
     t: string,
-    x: JSONType,
+    x: J,
 }
 
-class SmartAlternation<ST extends SmartType<any>[]> extends SmartType<NativeFor<ST>, AlternationJSON> {
+class SmartAlternation<ST extends SmartType<any>[]> extends SmartType<NativeFor<ST>, AlternationJSON<JsonFor<ST>>> {
 
     constructor(
         public readonly types: ST,
@@ -22,17 +22,17 @@ class SmartAlternation<ST extends SmartType<any>[]> extends SmartType<NativeFor<
         throw new ValidationError(this, x)
     }
 
-    toJSON(x: NativeFor<ST>): AlternationJSON {
+    toJSON(x: NativeFor<ST>): AlternationJSON<JsonFor<ST>> {
         // Find the type that strictly accepts this value, then encode it in JSON
         for (const t of this.types) {
             const y = t.inputReturnError(x, true)
             if (y instanceof ValidationError) continue
-            return { t: t.description, x: t.toJSON(x) }
+            return { t: t.description, x: t.toJSON(x) as any }
         }
         throw new ValidationError(this, x, "expected validated type for JSON")
     }
 
-    fromJSON(js: AlternationJSON): NativeFor<ST> {
+    fromJSON(js: AlternationJSON<JsonFor<ST>>): NativeFor<ST> {
         // Pick off the type and value, then unwrap recursively
         for (const t of this.types) {
             if (t.description === js.t) {
