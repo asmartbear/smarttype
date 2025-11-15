@@ -56,10 +56,41 @@ export function OR<ST extends SmartType<any>[]>(...types: ST) {
     return new SmartAlternation(types)
 }
 
+class SmartOptional<T, J extends JSONType> extends SmartType<T | undefined, J> {
+
+    constructor(
+        public readonly typ: SmartType<T, J>,
+    ) {
+        super(typ.description + "?")
+    }
+
+    // istanbul ignore next
+    get constructorArgs() { return [this.typ] }
+
+    get canBeUndefined() {
+        return true
+    }
+
+    input(x: unknown, strict: boolean = true): T | undefined {
+        if (x === undefined) return undefined
+        return this.typ.input(x, strict)
+    }
+
+    toJSON(x: T): J {
+        if (x === undefined) return undefined as any      // I know!
+        return this.typ.toJSON(x)
+    }
+
+    fromJSON(js: J): T | undefined {
+        if (js === undefined) return undefined
+        return this.typ.fromJSON(js)
+    }
+}
+
 /** 
- * Returns an "OR" of the given type and `undefined`, like an optional field in an object.
- * If the type can already be undefined, returns the original object.
+ * Returns the same type, but where `undefined` is also an acceptable value.
+ * If `undefined` is already one of the types it can be, returns the original object unchanged.
  */
-export function OPT<T>(typ: SmartType<T>): SmartType<T | undefined, JSONType> {
-    return typ.canBeUndefined ? typ : OR(typ, UNDEF())
+export function OPT<T, J extends JSONType>(typ: SmartType<T, J>): SmartType<T | undefined, J> {
+    return typ.canBeUndefined ? typ : new SmartOptional(typ)
 }

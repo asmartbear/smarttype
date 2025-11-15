@@ -115,6 +115,8 @@ test('number to JSON', () => {
     toFromJSON(ty, Number.POSITIVE_INFINITY, "Inf")
     toFromJSON(ty, Number.NEGATIVE_INFINITY, "-Inf")
     toFromJSON(ty, Number.NaN, "NaN")
+    toFromJSON(ty, Number.EPSILON, Number.EPSILON)
+    toFromJSON(ty, -Number.EPSILON, -Number.EPSILON)
     // Bad JSON
     T.throws(() => ty.fromJSON("foo"))
     T.eq(ty.toSimplified(123), 123)

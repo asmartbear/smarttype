@@ -51,9 +51,12 @@ test('smart fields with optional fields', () => {
         s: OPT(OPT(STR())),     // the second one is ignored
         b: BOOL(),
     })
-    T.eq(ty.description, "{x:(number|undefined),s:(string|undefined),b:boolean}")
+    T.eq(ty.description, "{x:number?,s:string?,b:boolean}")
 
     T.eq(ty.input({ b: true }), { b: true }, "can just be missing")
     T.eq(ty.input({ b: true }), { x: undefined, s: undefined, b: true }, "can be explicitly set to undefined")
+
     T.eq(ty.input({ s: "hello", b: true }), { s: "hello", b: true })
+    toFromJSON(ty, { b: true }, { b: true })
+    toFromJSON(ty, { s: "hi", b: true }, { s: "hi", b: true })
 })

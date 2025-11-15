@@ -53,7 +53,7 @@ class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends S
     fromJSON(js: JsonFor<ST>) {
         return Object.fromEntries(
             Object.entries(js).map(
-                ([k, y]) => [k, this.types[k].fromJSON(y)]
+                ([k, y]) => [k, y === undefined ? undefined : this.types[k].fromJSON(y)]
             )
         ) as NativeFor<ST>
     }

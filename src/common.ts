@@ -20,7 +20,7 @@ export type ClassOf<T> = (new (...args: any[]) => T);
  */
 export type InstanceOf<C> = C extends new (...args: any[]) => infer T ? T : never;
 
-/** Converts any undefined fields to also be explicitly optional in Typescript */
+/** Converts fields that can possible by undefined, to also be explicitly optional in Typescript */
 export type UndefinedFieldsAreOptional<T> = {
     [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>
 } & {
@@ -204,13 +204,22 @@ export function transformer<T, TYPE extends SmartType<T>>(
     return new cls(...upstream.constructorArgs) as any
 }
 
+/**  */
+type NativeUndefinable<T> = T extends undefined ? undefined : never;
+
 /**
  * Extracts the native type out of a SmartType, or the union of native types if an array or other amalgamation.
  */
 export type NativeFor<ST> =
     ST extends SmartType<infer T, any> ? T
     : ST extends SmartType[] ? NativeFor<ValuesOf<ST>>
-    : ST extends { readonly [K: string]: SmartType } ? UndefinedFieldsAreOptional<{ [K in keyof ST]: NativeFor<ST[K]>; }>
+    : ST extends { readonly [K: string]: SmartType } ? (
+        {
+            [K in keyof ST as undefined extends NativeFor<ST[K]> ? K : never]?: Exclude<NativeFor<ST[K]>, undefined>
+        } & {
+            [K in keyof ST as undefined extends NativeFor<ST[K]> ? never : K]: NativeFor<ST[K]>
+        }
+    )
     : never;
 
 /**
@@ -219,7 +228,14 @@ export type NativeFor<ST> =
 export type JsonFor<ST> =
     ST extends SmartType<any, infer J> ? J
     : ST extends SmartType[] ? JsonFor<ValuesOf<ST>>
-    : ST extends { readonly [K: string]: SmartType } ? { [K in keyof ST]: JsonFor<ST[K]>; }
+    : ST extends { readonly [K: string]: SmartType } ? (
+        {
+            [K in keyof ST as undefined extends NativeFor<ST[K]> ? K : never]?: Exclude<JsonFor<ST[K]>, undefined>
+        } & {
+            [K in keyof ST as undefined extends NativeFor<ST[K]> ? never : K]: JsonFor<ST[K]>
+        }
+    )
+
     : never;
 
 
