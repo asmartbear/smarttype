@@ -1,4 +1,4 @@
-import { Simple, ISimplifiable, simplifiedToDisplay, simplifiedToHash, simplify, simplifyOpaqueType } from "@asmartbear/simplified";
+import { Simple, ISimplifiable, simplifiedToDisplay, simplifiedToHash, simplifyOpaqueType, SimplifiedWalker } from "@asmartbear/simplified";
 
 export type Primative = boolean | number | string | null
 export type JSONType = null | boolean | string | number | JSONType[] | { [K: string]: JSONType } | { [K: number]: JSONType }
@@ -22,9 +22,19 @@ export type InstanceOf<C> = C extends new (...args: any[]) => infer T ? T : neve
 
 type ConcreteConstructor<T = {}> = new (...args: any[]) => T;
 
-/** True if this value is an iterable, that can produce an iterator. */
-export function isIterable<T>(x: any): x is Iterable<T> {
-    return typeof x === 'object' && x && typeof x[Symbol.iterator] === 'function'
+/**
+ * True if the argument is a `Primative`, and tells Typescript.
+ */
+export function isPrimative(x: unknown): x is Primative {
+    switch (typeof x) {
+        case 'boolean':
+        case 'number':
+        case 'string':
+            return true
+        case 'object':
+            return x === null
+    }
+    return false
 }
 
 /**
@@ -41,11 +51,10 @@ export class ValidationError extends Error implements ISimplifiable<string> {
         public path: string[] = []
     ) {
         let msg = expectedPrefix ?? "Expected " + type.description
-        msg += ` but got ${typeof valueEncountered}: ${simplifiedToDisplay(simplify(valueEncountered))}`
+        msg += ` but got ${typeof valueEncountered}: ${String(valueEncountered)}`
         super(msg);
         this.name = 'ValidationError';
         this.myMessage = msg
-        this.message = this.fullMessage
     }
 
     addPath(segment: string | number | symbol) {
@@ -136,7 +145,12 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
         return this
     }
 
-    /** Gets the simplified version of this data (a la `@asmartbear/simplified`), or a description of self if no argument is provided */
+    /** 
+     * Gets the simplified version of this data (a la `@asmartbear/simplified`), or a description of self if no argument is provided.
+     * 
+     * This is different from just calling `simplify()`, which of course you could do, because it handles cases like not recursing
+     * into opaque objects.
+     */
     toSimplified(x?: T): Simple {
         if (x === undefined) return this.description
         return simplifyOpaqueType(x)        // don't need a type system for this per se, but could potentially tweak this based on configuration
@@ -238,18 +252,3 @@ export type NativeTupleFor<ST extends readonly SmartType[]> = {
 export type JsonTupleFor<ST extends readonly SmartType[]> = {
     [K in keyof ST]: JsonFor<ST[K]>;
 };
-
-/**
- * True if the argument is a `Primative`, and tells Typescript.
- */
-export function isPrimative(x: unknown): x is Primative {
-    switch (typeof x) {
-        case 'boolean':
-        case 'number':
-        case 'string':
-            return true
-        case 'object':
-            return x === null
-    }
-    return false
-}

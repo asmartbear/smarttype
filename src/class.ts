@@ -18,6 +18,10 @@ class SmartClass<T extends object> extends SmartType<T, null> {
     // istanbul ignore next
     get constructorArgs() { return [this.cls] }
 
+    toSimplified(x: T) {
+        return `[${getClassOf<any>(x)?.name ?? this.cls.name}]`
+    }
+
     input(x: unknown, _?: boolean): T {
         // The only valid thing: The object is an instance of the class
         if (x instanceof this.cls) return x

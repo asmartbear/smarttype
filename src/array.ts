@@ -1,4 +1,5 @@
-import { ValidationError, SmartType, JSONType, isIterable } from "./common"
+import { isIterable } from '@asmartbear/simplified'
+import { ValidationError, SmartType, JSONType } from "./common"
 
 class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends SmartType<T[], J[]> {
 

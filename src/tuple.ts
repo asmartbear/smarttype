@@ -1,4 +1,5 @@
-import { ValidationError, SmartType, JSONType, JSONTuple, NativeTupleFor, JsonTupleFor, isIterable } from "./common"
+import { isIterable } from '@asmartbear/simplified'
+import { ValidationError, SmartType, JSONType, JSONTuple, NativeTupleFor, JsonTupleFor } from "./common"
 
 class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONTuple> extends SmartType<NativeTupleFor<ST>, J> {
 
