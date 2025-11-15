@@ -1,9 +1,39 @@
 import * as T from "./testutil"
 import { passes, fails, toFromJSON } from "./moreutil"
 import { MAP } from "../src/map"
+import { SET } from "../src/set"
 import { NUM } from "../src/number"
 import { BOOL } from "../src/boolean"
 import { STR } from "../src/string"
+
+test("set", () => {
+    const ty = SET(NUM())
+
+    passes(true, ty, new Set([]), new Set([1]), new Set([1, 2, 3]))
+    fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", new Set(["hi"]), new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))
+
+    // Array conversion, even if strict
+    T.eq(ty.input([]), new Set([]))
+    T.eq(ty.input([1, 2, 3]), new Set([1, 2, 3]))
+
+    // Type conversion only if not-strict
+    T.throws(() => ty.input(new Set(["123", "456"])))
+    T.throws(() => ty.input(["123", "456"]))
+    T.eq(ty.input(new Set(["123", "456"]), false), new Set([123, 456]))
+    T.eq(ty.input(["123", "456"], false), new Set([123, 456]))
+
+    toFromJSON(ty, new Set([]), [])
+    toFromJSON(ty, new Set([1]), [1])
+    toFromJSON(ty, new Set([1, 2, 3]), [1, 2, 3])
+
+    T.throws(() => ty.fromJSON({}))
+    T.throws(() => ty.fromJSON(false))
+    T.throws(() => ty.fromJSON(["taco"]))
+    T.throws(() => ty.fromJSON([[]]))
+    T.throws(() => ty.fromJSON([[123]]))
+    T.throws(() => ty.fromJSON([[123, "abc", "more"]]), undefined, "too many")
+    T.throws(() => ty.fromJSON([[123, 123]]), undefined, "wrong type")
+})
 
 test("map from map", () => {
     const ty = MAP(NUM(), STR())
