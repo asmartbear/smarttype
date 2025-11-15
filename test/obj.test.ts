@@ -9,6 +9,7 @@ test('smart fields', () => {
         b: V.BOOL(),
     })
     T.eq(ty.description, "{x:number,s:string,b:boolean}")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, { x: 0, s: "", b: false }, { x: 123, s: "cool", b: true })
@@ -30,6 +31,7 @@ test('smart fields with defaults', () => {
         b: V.BOOL().def(false),
     })
     T.eq(ty.description, "{x:number=123,s:string=hi>>re=/hi/g->there,b:boolean=false}")
+    T.eq(ty.canBeUndefined, false)
 
     T.eq(ty.input({}), { x: 123, s: "hi", b: false }, "default means we don't run the replacement")
     T.eq(ty.input({ s: "taco" }), { x: 123, s: "taco", b: false }, "replacement didn't match")
@@ -47,6 +49,7 @@ test('smart fields with optional fields', () => {
         b: V.BOOL(),
     })
     T.eq(ty.description, "{x:number?,s:string?,b:boolean}")
+    T.eq(ty.canBeUndefined, false)
 
     T.eq(ty.input({ b: true }), { b: true }, "can just be missing")
     T.eq(ty.input({ b: true }), { x: undefined, s: undefined, b: true }, "can be explicitly set to undefined")
@@ -62,6 +65,7 @@ test('smart fields with null objects', () => {
         du: V.OPT(V.DATE()),
     })
     T.eq(ty.description, "{dn:(date|null),du:date?}")
+    T.eq(ty.canBeUndefined, false)
 
     T.eq(ty.input({ dn: new Date(1234), du: new Date(6789) }), { dn: new Date(1234), du: new Date(6789) })
     T.eq(ty.input({ dn: null, du: new Date(6789) }), { dn: null, du: new Date(6789) })
@@ -80,12 +84,16 @@ test('smart fields made partial', () => {
         b: V.BOOL(),
     })
     T.eq(ty.description, "{x:number,s:string?,b:boolean}")
+    T.eq(ty.canBeUndefined, false)
 
     let opt = ty.partial()
     T.eq(opt.description, "{x:number?,s:string?,b:boolean?}")
+    T.eq(opt.canBeUndefined, false, "the fields inside can be undefined, but the outer object is not")
 
     T.eq(opt.input({ b: true }), { b: true })
     T.eq(opt.input({}), {})
+
+    T.eq(opt.fromJSON({ x: undefined, s: "foo" }), { s: "foo" }, "explicitly undefined and tacitly")
 })
 
 test('smart fields with extra fields provided', () => {

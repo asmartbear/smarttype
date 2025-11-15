@@ -1,4 +1,4 @@
-import { ValidationError, SmartType } from "./common"
+import { ValidationError, SmartType, JSONType } from "./common"
 
 /** The native `boolean` type */
 class SmartBoolean extends SmartType<boolean, boolean> {
@@ -25,7 +25,7 @@ class SmartBoolean extends SmartType<boolean, boolean> {
         throw new ValidationError(this, x)
     }
 
-    fromJSON(x: boolean) {
+    fromJSON(x: JSONType) {
         if (typeof x === "boolean") return x
         throw new ValidationError(this, x)
     }

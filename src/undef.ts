@@ -16,11 +16,13 @@ class SmartUndefined extends SmartType<undefined, typeof JS_UNDEFINED_SIGNAL> {
     }
 
     toJSON(x: any): typeof JS_UNDEFINED_SIGNAL {
-        return JS_UNDEFINED_SIGNAL
+        if (x === undefined) return JS_UNDEFINED_SIGNAL
+        throw new ValidationError(this, x)
     }
 
     fromJSON(x: any) {
-        return undefined
+        if (x === JS_UNDEFINED_SIGNAL) return undefined
+        throw new ValidationError(this, x)
     }
 }
 

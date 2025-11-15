@@ -23,6 +23,7 @@ test('isPrimative', () => {
 test('smart undefined', () => {
     let ty = V.UNDEF()
     T.eq(ty.description, "undefined")
+    T.eq(ty.canBeUndefined, true)
 
     // strict
     passes(true, ty, undefined)
@@ -30,11 +31,14 @@ test('smart undefined', () => {
     T.be(ty.input(undefined), undefined, "default parameter")
 
     toFromJSON(ty, undefined, JS_UNDEFINED_SIGNAL)
+    T.throws(() => ty.toJSON(123))
+    T.throws(() => ty.fromJSON(123))
 })
 
 test('smart null', () => {
     let ty = V.NIL()
     T.eq(ty.description, "null")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, null)
@@ -42,11 +46,14 @@ test('smart null', () => {
     T.be(ty.input(null), null, "default parameter")
 
     toFromJSON(ty, null, null)
+    T.throws(() => ty.toJSON(123))
+    T.throws(() => ty.fromJSON(123))
 })
 
 test('smart boolean', () => {
     let ty = V.BOOL()
     T.eq(ty.description, "boolean")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, false, true)
@@ -72,11 +79,14 @@ test('smart boolean', () => {
 
     toFromJSON(ty, false, false)
     toFromJSON(ty, true, true)
+    T.throws(() => ty.toJSON(123 as any))
+    T.throws(() => ty.fromJSON(123))
 })
 
 test('smart number', () => {
     let ty = V.NUM()
     T.eq(ty.description, "number")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
@@ -125,6 +135,7 @@ test('number to JSON', () => {
 test('smart string', () => {
     let ty = V.STR()
     T.eq(ty.description, "string")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, "", "a", "foo bar", "foo\nbar")
@@ -191,6 +202,7 @@ test('smart string', () => {
 test('smart array', () => {
     let ty = V.ARRAY(V.NUM())
     T.eq(ty.description, "number[]")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, [], [1], [2, 1])
@@ -221,6 +233,7 @@ test('smart array', () => {
 test('smart tuple x2', () => {
     let ty = V.TUPLE(V.NUM(), V.STR())
     T.eq(ty.description, "[number,string]")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, [123, "foo"], [321, "123"])
@@ -242,6 +255,7 @@ test('smart tuple x2', () => {
 test('smart tuple x3', () => {
     let ty = V.TUPLE(V.NUM(), V.STR(), V.BOOL())
     T.eq(ty.description, "[number,string,boolean]")
+    T.eq(ty.canBeUndefined, false)
 
     // strict
     passes(true, ty, [123, "foo", true], [321, "123", false])
@@ -277,6 +291,7 @@ test('transform', () => {
         }
     })
     T.eq(ty.description, "string>>minLen=4>>css quad>>{left:number,top:number,right:number,bottom:number}")
+    T.eq(ty.canBeUndefined, false)
 
     T.eq(ty.input("1 2 3 4"), { left: 4, top: 1, right: 2, bottom: 3 })
     T.eq(ty.input("12 2.6 -3 4"), { left: 4, top: 12, right: 2.6, bottom: -3 })
