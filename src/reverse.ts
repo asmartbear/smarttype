@@ -1,4 +1,4 @@
-import { ValidationError, SmartType, JSONType, NativeFor, JsonFor, Primative, isPrimative } from "./common"
+import { ValidationError, ValuesOf, SmartType, JSONType, NativeFor, JsonFor, Primative, isPrimative } from "./common"
 import { BOOL } from "./boolean"
 import { UNDEF } from "./undef"
 import { NUM } from "./number"
@@ -20,20 +20,24 @@ type InstanceOf<C> = C extends ClassOf<infer T> ? T : never;
 
 /** True of the object is a class */
 function isClassObject(obj: any): obj is Function {
+    // istanbul ignore next
     if (typeof obj !== 'function') return false;
-    const prototype = Object.getPrototypeOf(obj.prototype);
+    const prototype = obj.prototype && Object.getPrototypeOf(obj.prototype);
     return prototype && typeof prototype.constructor === 'function';
 }
 
-// export type SmartTypeFrom<T> =
-//     T extends undefined ? ReturnType<typeof UNDEF> :
-//     T extends null ? ReturnType<typeof NIL> :
-//     T extends boolean ? ReturnType<typeof BOOL> :
-//     T extends number ? ReturnType<typeof NUM> :
-//     T extends string ? ReturnType<typeof STR> :
-//     T extends Array<infer U> ? SmartType<U[]> :
-//     T extends { [K in keyof T]: T[K] } ? SmartType<{ [K in keyof T]: T[K] }> :
-//     never;
+/** The smart type corresponding to a given native type */
+export type SmartTypeFrom<T> =
+    T extends undefined ? ReturnType<typeof UNDEF> :
+    T extends null ? ReturnType<typeof NIL> :
+    T extends boolean ? ReturnType<typeof BOOL> :
+    T extends number ? ReturnType<typeof NUM> :
+    T extends string ? ReturnType<typeof STR> :
+    T extends ClassOf<infer U> ? SmartType<U> :
+    HasFunction<T> extends true ? SmartType<T> :      // catch class-instances before generic structures
+    T extends Array<infer U> ? SmartType<NativeFor<SmartTypeFrom<U>>[]> :       // rewrap inner
+    T extends { [K in keyof T]: T[K] } ? SmartType<{ [K in keyof T]: NativeFor<SmartTypeFrom<T[K]>> }> :       // rewrap inner
+    never;
 
 /**
  * Given an instantiated Javascript object, attempts to reverse-engineer the smart-type that matches it.
@@ -41,12 +45,19 @@ function isClassObject(obj: any): obj is Function {
  * @param x the object to match
  * @param options optional options for creating types
  */
-export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartType<T> {
+export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeFrom<T> {
     switch (typeof x) {
         case 'undefined': return UNDEF() as any
         case 'boolean': return BOOL() as any
         case 'number': return NUM() as any
         case 'string': return STR() as any
+
+        // Mostly no, but catch classes
+        case 'function':
+            if (isClassObject(x)) {
+                return CLASS(x as any) as any
+            }
+            throw new Error(`Unsupported native type for reverse-engineering a data type: ${typeof x}`)
 
         case 'object':
             // null

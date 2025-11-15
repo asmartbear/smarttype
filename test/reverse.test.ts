@@ -1,7 +1,15 @@
 import * as T from "./testutil"
+import { failsWithErrorRegex } from "./moreutil"
 import { reverseEngineerType as REV } from "../src/reverse"
 
-class MyTestClass { toString() { return "hi" } }
+class MyTestClassA {
+    toString() { return "A" }
+}
+
+class MyTestClassB extends MyTestClassA {
+    parent: MyTestClassA | null = null
+    toString() { return "B" }
+}
 
 test('reverse-engineer basics', () => {
     T.be(REV(undefined).description, 'undefined')
@@ -19,6 +27,13 @@ test('reverse-engineer basics', () => {
 
     T.be(REV("").description, 'string')
     T.be(REV("foo").description, 'string')
+})
+
+test('reverse-engineer unsupported', () => {
+    T.throws(() => REV(() => { }))
+    T.throws(() => REV(parseInt))
+    T.throws(() => REV(Symbol("foo")))
+    T.throws(() => REV(BigInt(12345)))
 })
 
 test('reverse-engineer arrays', () => {
@@ -48,8 +63,55 @@ test('reverse-engineer fields', () => {
 })
 
 test('reverse-engineer opaque objects', () => {
-    const a = new MyTestClass()
-    const ty = REV(a)
-    T.be(ty.description, 'MyTestClass')
-    T.throws(() => ty.toJSON(a))
+    const a = new MyTestClassA()
+    const at = REV(a)
+    T.be(at.description, 'MyTestClassA')
+    T.throws(() => at.toJSON(a))
+
+    const b = new MyTestClassB()
+    const bt = REV(b)
+    T.be(bt.description, 'MyTestClassB')
+    T.throws(() => bt.toJSON(b))
+
+    T.be(at.input(a), a)
+    T.be(at.input(b), b)
+
+    T.be(bt.input(b), b)
+    failsWithErrorRegex(bt, a, /MyTestClassB\b.*\bMyTestClassA/)
+})
+
+test('reverse-engineer classes', () => {
+    const a = new MyTestClassA()
+    const at = REV(MyTestClassA)
+    T.be(at.description, 'MyTestClassA')
+    T.throws(() => at.toJSON(a))
+
+    const b = new MyTestClassB()
+    const bt = REV(MyTestClassB)
+    T.be(bt.description, 'MyTestClassB')
+    T.throws(() => bt.toJSON(b))
+
+    T.be(at.input(a), a)
+    T.be(at.input(b), b)
+
+    T.be(bt.input(b), b)
+    failsWithErrorRegex(bt, a, /MyTestClassB\b.*\bMyTestClassA/)
+})
+
+test('reverse engineer classes inside objects', () => {
+    const a = new MyTestClassA()
+    const b = new MyTestClassB()
+    const ty = REV({ a: MyTestClassA, b: MyTestClassB })
+    T.be(ty.description, '{a:MyTestClassA,b:MyTestClassB}')
+    T.eq(ty.input({ a, b }), { a, b })
+    T.eq(ty.input({ a: b, b }), { a: b, b })
+    failsWithErrorRegex(ty, { a, b: a }, /MyTestClassB\b.*\bMyTestClassA/)
+})
+
+test('reverse engineer known objects', () => {
+    const a = new MyTestClassA()
+    const d = new Date()
+    const ty = REV({ a: MyTestClassA, d })
+    T.be(ty.description, '{a:MyTestClassA,d:Date}')
+    T.eq(ty.input({ a, d }), { a, d })
 })
