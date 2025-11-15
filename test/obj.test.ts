@@ -120,7 +120,7 @@ test('big object', () => {
         size: V.LITERAL("decoration"),
         autocropEarly: V.BOOL(),
         autocropLast: V.BOOL(),
-        // border: V.REGEX_TRANSFORM(/^(\d+)px\s+([\w+-]+)$/, "16px red", m => ({ color: m[2], px: parseInt(m[1]) })),
+        // border: V.STR().transformByRegex(/^(\d+)px\s+([\w+-]+)$/, "16px red", m => ({ color: m[2], px: parseInt(m[1]) })),
         transparentColors: V.ARRAY(V.STR()),
         crop: V.OR(V.LITERAL("auto", "none"), V.STR()),
         credit: V.STR(),

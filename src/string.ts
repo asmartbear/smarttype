@@ -60,6 +60,22 @@ class SmartString extends SmartType<string, string> {
             }
         )
     }
+
+    /**
+     * Validates that the string matches the given regex, then transforms into a different data type
+     * using the result of that regex, typically looking at match-groups.
+     */
+    transformByRegex<R, RESULT extends SmartType<R>>(re: RegExp, resultType: RESULT, fTransform: (match: RegExpMatchArray) => R): typeof resultType {
+        return this.transform<R, RESULT>(
+            `${re}`,
+            resultType,
+            (s: string) => {
+                const m = s.match(re)
+                if (!m) throw new ValidationError(this, s, `Expected regex to match: ${re}`)
+                return fTransform(m)
+            }
+        )
+    }
 }
 
 /** General string */

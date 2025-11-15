@@ -199,6 +199,24 @@ test('smart string', () => {
     T.eq(ty.toSimplified("123"), "123")
 })
 
+test('string regex transform', () => {
+    const ty = V.STR().transformByRegex(
+        /(\d+)\s+(\w+)/,
+        V.OBJ({ noun: V.STR(), count: V.NUM() }),
+        m => ({ noun: m[2], count: parseInt(m[1]) })
+    )
+    T.eq(ty.description, "string>>/(\\d+)\\s+(\\w+)/>>{noun:string,count:number}")
+    T.eq(ty.canBeUndefined, false)
+
+    T.throws(() => ty.input(""))
+    T.throws(() => ty.input("crows 13"))
+    T.eq(ty.input("13 crows"), { noun: "crows", count: 13 })
+    T.eq(ty.input("there are 12 crows."), { noun: "crows", count: 12 })
+
+    // JSON is only about the final result, after transformation
+    toFromJSON(ty, { noun: "crows", count: 13 }, { noun: "crows", count: 13 })
+})
+
 test('smart array', () => {
     let ty = V.ARRAY(V.NUM())
     T.eq(ty.description, "number[]")
