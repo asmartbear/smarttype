@@ -88,44 +88,58 @@ test('smart fields made partial', () => {
     T.eq(opt.input({}), {})
 })
 
+test('smart fields with extra fields provided', () => {
+    const allowExtra = V.OBJ({
+        x: V.NUM(),
+    }, { ignoreExtraFields: true })
+    T.eq(allowExtra.input({ x: 123, y: 456 }), { x: 123 })
+
+    const noExtra = V.OBJ({
+        x: V.NUM(),
+    }, { ignoreExtraFields: false })
+    T.throws(() => noExtra.input({ x: 123, y: 456 }))
+})
+
 test('big object', () => {
 
-    // const ImageConfigurationSchema = V.OBJ({
-    //     alt: V.STR(),
-    //     caption: V.STR(),
-    //     lightenForPrint: V.BOOL(),
-    //     floatWhenNarrow: V.BOOL(),
-    //     width: V.OR(V.NUM(), V.LITERAL("bleed")),
-    //     height: V.OR(V.NUM(), V.LITERAL("full", "page", "page-rotated")),
-    //     size: V.LITERAL("decoration"),
-    //     autocropEarly: V.BOOL(),
-    //     autocropLast: V.BOOL(),
-    //     border: V.REGEX_TRANSFORM(/^(\d+)px\s+([\w+-]+)$/, "16px red", m => ({ color: m[2], px: parseInt(m[1]) })),
-    //     transparentColors: V.ARRAY(V.STR()),
-    //     crop: V.OR(V.LITERAL("auto", "none"), CropStringValidator),
-    //     credit: V.STR(),
-    //     float: V.LITERAL("none", "left", "right", "inside", "outside", "top", "bottom", "nearest"),
-    //     figure: V.WEBID(),
-    //     box: V.BOOL(),
-    //     brightness: V.NUM(),
-    //     contrast: V.NUM(),
-    //     sharpen: V.NUM().min(1),
-    //     composeLight: V.BOOL(),
-    //     grayscale: V.BOOL(),
-    //     dpiMinimum: V.NUM().int().min(0),
-    //     featured: V.OR(V.BOOL(), V.REGEX_TRANSFORM(/^\s*([\d\.]+)\s+([\d\.]+)\s*([\d\.]+)?\s*$/, "cy cx", m => ({ cy: parseFloat(m[1]), cx: parseFloat(m[2]), scale: m[3] ? parseFloat(m[3]) : undefined }))),
-    //     showClickToEnlarge: V.BOOL(),
-    //     keepSvg: V.BOOL(),
-    //     chapterHead: V.BOOL(),
-    //     comment: V.STR(),
-    //     preset: V.LITERAL("none", "andertoon", "bear", "diagram-solid", "diagram-trans", "google-chart", "notability", "photo", "screenshot", "tweet"),
-    //     background: V.LITERAL("solid", "transparent"),
-    //     shape: V.LITERAL("figure", "framed", "cropped"),
-    //     content: V.LITERAL("text", "lines", "splotches", "photo"),
-    //     dark: V.LITERAL("none", "dim", "invert", "i180"),
-    //     format: V.LITERAL("png", "jpg", "webp"),
-    //     inPrint: V.BOOL(),
-    //     decorationFloatWidthIn: V.NUM(),
-    //     decorationInlineHeightIn: V.NUM(),
-    // }, { noExtraFields: true }).optional();
+    const ImageConfigurationSchema = V.OBJ({
+        alt: V.STR(),
+        caption: V.STR(),
+        lightenForPrint: V.BOOL(),
+        floatWhenNarrow: V.BOOL(),
+        width: V.OR(V.NUM(), V.LITERAL("bleed")),
+        height: V.OR(V.NUM(), V.LITERAL("full", "page", "page-rotated")),
+        size: V.LITERAL("decoration"),
+        autocropEarly: V.BOOL(),
+        autocropLast: V.BOOL(),
+        // border: V.REGEX_TRANSFORM(/^(\d+)px\s+([\w+-]+)$/, "16px red", m => ({ color: m[2], px: parseInt(m[1]) })),
+        transparentColors: V.ARRAY(V.STR()),
+        crop: V.OR(V.LITERAL("auto", "none"), V.STR()),
+        credit: V.STR(),
+        float: V.LITERAL("none", "left", "right", "inside", "outside", "top", "bottom", "nearest"),
+        figure: V.WEBID(),
+        box: V.BOOL(),
+        brightness: V.NUM(),
+        contrast: V.NUM(),
+        sharpen: V.NUM().min(1),
+        composeLight: V.BOOL(),
+        grayscale: V.BOOL(),
+        dpiMinimum: V.NUM().int().min(0),
+        // featured: V.OR(V.BOOL(), V.REGEX_TRANSFORM(/^\s*([\d\.]+)\s+([\d\.]+)\s*([\d\.]+)?\s*$/, "cy cx", m => ({ cy: parseFloat(m[1]), cx: parseFloat(m[2]), scale: m[3] ? parseFloat(m[3]) : undefined }))),
+        showClickToEnlarge: V.BOOL(),
+        keepSvg: V.BOOL(),
+        chapterHead: V.BOOL(),
+        comment: V.STR(),
+        preset: V.LITERAL("none", "andertoon", "bear", "diagram-solid", "diagram-trans", "google-chart", "notability", "photo", "screenshot", "tweet"),
+        background: V.LITERAL("solid", "transparent"),
+        shape: V.LITERAL("figure", "framed", "cropped"),
+        content: V.LITERAL("text", "lines", "splotches", "photo"),
+        dark: V.LITERAL("none", "dim", "invert", "i180"),
+        format: V.LITERAL("png", "jpg", "webp"),
+        inPrint: V.BOOL(),
+        decorationFloatWidthIn: V.NUM(),
+        decorationInlineHeightIn: V.NUM(),
+    }, { ignoreExtraFields: true }).partial();
+
+    let thing = ImageConfigurationSchema.input({})
 })
