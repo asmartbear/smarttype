@@ -1,4 +1,4 @@
-import { ValidationError, transformer, SmartType, JsonFor, JSONType } from "./common"
+import { ValidationError, SmartType, JsonFor, JSONType } from "./common"
 
 class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends SmartType<T[], J[]> {
 
@@ -26,7 +26,7 @@ class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends Smar
 
     /** Validate that the array has at least this elements. */
     minLen(min: number) {
-        return transformer<T[], this>(this,
+        return this.transformSameType(
             `minLen=${min}`,
             (a) => {
                 if (a.length < min) throw new ValidationError(this, a);

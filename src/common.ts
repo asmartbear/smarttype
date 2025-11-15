@@ -145,7 +145,8 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
      */
     transform<R, RESULT extends SmartType<R>>(description: string, resultType: RESULT, fTransform: (x: T) => R): typeof resultType {
         const upstream = this     // make local copy of this value
-        const newDescription = this.description + '>>' + description + '>>' + resultType.description
+        const suffix = resultType.description != this.description ? '>>' + resultType.description : ''        // say, if there's a new type
+        const newDescription = this.description + '>>' + description + suffix
         const ResultClass = resultType.constructor as ConcreteConstructor<ClassOf<typeof resultType>>;
         const cls = class extends ResultClass {
             public readonly description = newDescription
@@ -153,8 +154,17 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
             input(x: unknown, strict: boolean = true) {
                 return fTransform(upstream.input(x, strict))
             }
+            // Carry state forward
+            [__DEFAULT_VALUE] = upstream[__DEFAULT_VALUE]
         }
         return new cls(...resultType.constructorArgs) as any
+    }
+
+    /**
+     * Like `transform()` where the resulting type is the same, and thus the function signature is simpler.
+     */
+    transformSameType(description: string, fTransform: (x: T) => T): this {
+        return this.transform(description, this, fTransform)
     }
 
     get constructorArgs(): any[] { return [this.description] }
@@ -165,36 +175,6 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
     abstract input(x: unknown, strict?: boolean): T;
     abstract toJSON(x: T): J;
     abstract fromJSON(js: JSONType): T;
-}
-
-/**
- * Extends a `SmartType` base class with a new class that executes a transformation of some upstream type
- * in its `input()`, returning something that is of the identical type to the base-class but with this
- * transformation applied.
- * 
- * @param Base base-class to extend
- * @param upstream upstream type for processing input before we apply this transformation
- * @param description human-readable description to use for this transformation
- * @param fTransform transformation function
- * @returns the same type as was passed in for `Base`, but applies the changes.
- */
-export function transformer<T, TYPE extends SmartType<T>>(
-    upstream: TYPE,
-    description: string,
-    fTransform: (x: T) => T
-): typeof upstream {
-    const UpstreamClass = upstream.constructor as ConcreteConstructor<ClassOf<typeof upstream>>;
-    const cls = class extends UpstreamClass {
-        // Wrap the description
-        public readonly description = `${upstream.description}>>${description}`
-        // Wrap input in the transformation
-        input(x: unknown, strict: boolean = true): T {
-            return fTransform(upstream.input(x, strict))
-        }
-        // Carry state forward
-        [__DEFAULT_VALUE] = upstream[__DEFAULT_VALUE]
-    }
-    return new cls(...upstream.constructorArgs) as any
 }
 
 /**  */

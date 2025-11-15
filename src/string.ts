@@ -1,4 +1,4 @@
-import { ValidationError, SmartType, transformer } from "./common"
+import { ValidationError, SmartType } from "./common"
 
 class SmartString extends SmartType<string, string> {
 
@@ -26,14 +26,14 @@ class SmartString extends SmartType<string, string> {
 
     /** Validate that the string is at least this many characters. */
     minLen(min: number) {
-        return transformer<string, this>(this,
+        return this.transformSameType(
             `minLen=${min}`,
             (s) => { if (s.length < min) throw new ValidationError(this, s); return s }
         )
     }
 
     trim() {
-        return transformer<string, this>(this,
+        return this.transformSameType(
             `trim`,
             (s) => { return s.trim() }
         )
@@ -41,7 +41,7 @@ class SmartString extends SmartType<string, string> {
 
     /** Validate that the string matches a regualar expression */
     match(re: RegExp) {
-        return transformer<string, this>(this,
+        return this.transformSameType(
             `re=${re}`,
             (s) => { if (!re.test(s)) throw new ValidationError(this, s); return s }
         )
@@ -49,7 +49,7 @@ class SmartString extends SmartType<string, string> {
 
     /** Make regex replacement, optionally failing if there is nothing to replace */
     replace(re: RegExp, replacement: string | ((substring: string, ...args: string[]) => string), failIfNoMatches: boolean = false) {
-        return transformer<string, this>(this,
+        return this.transformSameType(
             `re=${re}->${typeof replacement === "string" ? replacement : "[function]"}`,
             (s) => {
                 const result = s.replaceAll(re, replacement as any)

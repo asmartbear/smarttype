@@ -1,4 +1,4 @@
-import { ValidationError, SmartType, transformer, JSONType } from "./common"
+import { ValidationError, SmartType, JSONType } from "./common"
 
 /** The native `number` type */
 class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
@@ -45,7 +45,7 @@ class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
 
     /** Validate that the number is at least as large as this, inclusive. */
     min(min: number) {
-        return transformer<number, this>(this,
+        return this.transformSameType(
             `min=${min}`,
             (x) => { if (x < min || Number.isNaN(x)) throw new ValidationError(this, x, "Beyond minimum"); return x }
         )
@@ -53,7 +53,7 @@ class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
 
     /** Validate that the number is at not larger than this, inclusive. */
     max(max: number) {
-        return transformer<number, this>(this,
+        return this.transformSameType(
             `max=${max}`,
             (x) => { if (x > max || Number.isNaN(x)) throw new ValidationError(this, x, "Beyond maximum"); return x }
         )
@@ -61,7 +61,7 @@ class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
 
     /** If the input is less or greater than some limit, set it to that limit.  Or `undefined` to ignore that limit. */
     clamp(min: number | undefined, max: number | undefined) {
-        return transformer<number, this>(this,
+        return this.transformSameType(
             "clamped",
             (x) => {
                 if (min !== undefined && x < min) x = min
@@ -73,7 +73,7 @@ class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
 
     /** Enforce the number is a (safe) integer value. */
     int() {
-        return transformer<number, this>(this,
+        return this.transformSameType(
             `int`,
             (x) => { if (!Number.isSafeInteger(x)) throw new ValidationError(this, x, "Not an integer"); return x }
         )
