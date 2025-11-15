@@ -108,9 +108,8 @@ test('smart fields with extra fields provided', () => {
     T.throws(() => noExtra.input({ x: 123, y: 456 }))
 })
 
-test('big object', () => {
-
-    const ImageConfigurationSchema = V.OBJ({
+test('big image configuration object', () => {
+    const ty = V.OBJ({
         alt: V.STR(),
         caption: V.STR(),
         lightenForPrint: V.BOOL(),
@@ -120,7 +119,11 @@ test('big object', () => {
         size: V.LITERAL("decoration"),
         autocropEarly: V.BOOL(),
         autocropLast: V.BOOL(),
-        // border: V.STR().transformByRegex(/^(\d+)px\s+([\w+-]+)$/, "16px red", m => ({ color: m[2], px: parseInt(m[1]) })),
+        border: V.STR().transformByRegex(
+            /^(\d+)px\s+([\w+-]+)$/,
+            V.OBJ({ color: V.STR().minLen(1), px: V.NUM().int().min(0) }),
+            m => ({ color: m[2], px: parseInt(m[1]) })
+        ),
         transparentColors: V.ARRAY(V.STR()),
         crop: V.OR(V.LITERAL("auto", "none"), V.STR()),
         credit: V.STR(),
@@ -133,7 +136,14 @@ test('big object', () => {
         composeLight: V.BOOL(),
         grayscale: V.BOOL(),
         dpiMinimum: V.NUM().int().min(0),
-        // featured: V.OR(V.BOOL(), V.REGEX_TRANSFORM(/^\s*([\d\.]+)\s+([\d\.]+)\s*([\d\.]+)?\s*$/, "cy cx", m => ({ cy: parseFloat(m[1]), cx: parseFloat(m[2]), scale: m[3] ? parseFloat(m[3]) : undefined }))),
+        featured: V.OR(
+            V.BOOL(),
+            V.STR().transformByRegex(
+                /^\s*([\d\.]+)\s+([\d\.]+)\s*([\d\.]+)?\s*$/,
+                V.OBJ({ cx: V.NUM().min(-2).max(2), cy: V.NUM().min(-2).max(2), scale: V.OPT(V.NUM().min(0).max(100)) }),
+                m => ({ cy: parseFloat(m[1]), cx: parseFloat(m[2]), scale: m[3] ? parseFloat(m[3]) : undefined })
+            )
+        ),
         showClickToEnlarge: V.BOOL(),
         keepSvg: V.BOOL(),
         chapterHead: V.BOOL(),
@@ -149,5 +159,25 @@ test('big object', () => {
         decorationInlineHeightIn: V.NUM(),
     }, { ignoreExtraFields: true }).partial();
 
-    let thing = ImageConfigurationSchema.input({})
+    T.eq(ty.input(
+        { caption: "hi", figure: "my-picture", autocropEarly: true, width: 2.5, height: "full" }),
+        { caption: "hi", figure: "my-picture", autocropEarly: true, width: 2.5, height: "full" }
+    )
+    T.eq(ty.input(
+        { grayscale: true, width: "bleed", height: 2, featured: "0.3 0.5" }),
+        { grayscale: true, width: "bleed", height: 2, featured: { cx: 0.5, cy: 0.3 } }
+    )
+    T.eq(ty.input(
+        { crop: "auto", dark: "i180", border: "16px red", featured: "0.3 0.5 1.2" }),
+        { crop: "auto", dark: "i180", border: { color: "red", px: 16 }, featured: { cx: 0.5, cy: 0.3, scale: 1.2 } }
+    )
+    T.throws(() => ty.input(
+        { caption: "hi", figure: "-picture", autocropEarly: true, width: 2.5, height: "full" }),
+    )
+    T.throws(() => ty.input(
+        { caption: "hi", figure: "my-picture", autocropEarly: true, width: 2.5, height: "another word" }),
+    )
+    T.throws(() => ty.input(
+        { crop: "auto", dark: "i180", border: "16px red", featured: "10 0.5 1.2" }),
+    )
 })

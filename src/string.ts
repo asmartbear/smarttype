@@ -1,4 +1,4 @@
-import { ValidationError, SmartType } from "./common"
+import { ValidationError, SmartType, NativeFor } from "./common"
 
 class SmartString extends SmartType<string, string> {
 
@@ -65,8 +65,8 @@ class SmartString extends SmartType<string, string> {
      * Validates that the string matches the given regex, then transforms into a different data type
      * using the result of that regex, typically looking at match-groups.
      */
-    transformByRegex<R, RESULT extends SmartType<R>>(re: RegExp, resultType: RESULT, fTransform: (match: RegExpMatchArray) => R): typeof resultType {
-        return this.transform<R, RESULT>(
+    transformByRegex<RESULT extends SmartType, R = NativeFor<RESULT>>(re: RegExp, resultType: RESULT, fTransform: (match: RegExpMatchArray) => R): typeof resultType {
+        return this.transform<RESULT, R>(
             `${re}`,
             resultType,
             (s: string) => {

@@ -143,7 +143,7 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
      * @param resultType the type definition of the result of the transformation
      * @param fTransform the function that transforms a validated value of the current type into the value needed by `resultType`.
      */
-    transform<R, RESULT extends SmartType<R>>(description: string, resultType: RESULT, fTransform: (x: T) => R): typeof resultType {
+    transform<RESULT extends SmartType, R = NativeFor<RESULT>>(description: string, resultType: RESULT, fTransform: (x: T) => R): typeof resultType {
         const upstream = this     // make local copy of this value
         const suffix = resultType.description != this.description ? '>>' + resultType.description : ''        // say, if there's a new type
         const newDescription = this.description + '>>' + description + suffix
@@ -152,7 +152,7 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
             public readonly description = newDescription
             // Wrap input in the transformation
             input(x: unknown, strict: boolean = true) {
-                return fTransform(upstream.input(x, strict))
+                return resultType.input(fTransform(upstream.input(x, strict)), true)        // reinterpret the transformation for more validation
             }
             // Carry state forward
             [__DEFAULT_VALUE] = upstream[__DEFAULT_VALUE]
