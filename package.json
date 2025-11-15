@@ -1,6 +1,6 @@
 {
-  "name": "@asmartbear/supertype",
-  "version": "1.0.3",
+  "name": "@asmartbear/smarttype",
+  "version": "1.0.4",
   "description": "Data types that parse, validate, transform, marshal, compare, and hash",
   "keywords": [
     "json"
@@ -41,11 +41,11 @@
   },
   "license": "MIT",
   "repository": {
-    "url": "git@github.com:asmartbear/supertype.git",
+    "url": "git@github.com:asmartbear/smarttype.git",
     "type": "git"
   },
   "bugs": {
-    "url": "https://github.com/asmartbear/supertype/issues"
+    "url": "https://github.com/asmartbear/smarttype/issues"
   },
   "author": {
     "name": "Jason Cohen",
