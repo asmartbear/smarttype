@@ -44,8 +44,8 @@ test('reverse-engineer arrays', () => {
     T.be(REV([1, 2, 3]).description, 'number[]')
     T.be(REV([true]).description, 'boolean[]')
 
-    // mixed types aren't currently supported; we could look through all elements and create an alternation if we wanted to
-    T.be(REV([true, 1, "hi", 2, false]).description, 'boolean[]')
+    // mixed types
+    T.be(REV([true, 1, "hi", 2, false]).description, '(boolean|number|string)[]')
 })
 
 test('reverse-engineer sets', () => {
@@ -56,8 +56,8 @@ test('reverse-engineer sets', () => {
     T.be(REV(new Set([1, 2, 3])).description, 'Set(number)')
     T.be(REV(new Set([true])).description, 'Set(boolean)')
 
-    // mixed types aren't currently supported; we could look through all elements and create an alternation if we wanted to
-    T.be(REV(new Set([true, 1, "hi", 2, false])).description, 'Set(boolean)')
+    // mixed types
+    T.be(REV(new Set([true, 1, "hi", 2, false])).description, 'Set((boolean|number|string))')
 })
 
 test('reverse-engineer maps', () => {
@@ -67,8 +67,8 @@ test('reverse-engineer maps', () => {
     // single type
     T.be(REV(new Map([[1, "a"], [10, "b"]])).description, '{number:string}')
 
-    // mixed types aren't currently supported; we could look through all elements and create an alternation if we wanted to
-    T.be(REV(new Map<number | string, string | boolean>([[1, "a"], ["b", false]])).description, '{number:string}')
+    // mixed types
+    T.be(REV(new Map<number | string, string | boolean>([[1, "a"], ["b", false]])).description, '{(number|string):(string|boolean)}')
 })
 
 test('reverse-engineer fields', () => {
@@ -140,4 +140,9 @@ test('reverse engineer known objects', () => {
     T.eq(ty.isOfType(obj, true), true)
     T.eq(ty.input(obj), obj)
     T.eq(ty.toJSON(obj), { d: 1763317395302, re: "/foo/gi" }, "shows we wrapped the objects properly")
+})
+
+test('a complex native object', () => {
+    const ty = REV({ a: false, b: { c: [1, 2, 3], d: new Set([1, 2, "foo"]), dt: new Date() } })
+    T.eq(ty.description, "{a:boolean,b:{c:number[],d:Set((number|string)),dt:date}}")
 })

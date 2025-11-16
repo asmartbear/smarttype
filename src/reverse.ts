@@ -12,6 +12,7 @@ import { DATE } from './date'
 import { REGEXP } from './regexp'
 import { SET } from './set'
 import { MAP } from './map'
+import { OR } from './alternation'
 
 /** Given a type, returns the Class of that type. */
 type ClassOf<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T);
@@ -115,14 +116,27 @@ export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeF
  * the same type, or some alternation if there are distinct sets of types.
  * 
  * Returns `null` if the list is empty, and therefore no type can be identified.
- * 
- * Right now we only look at the first one.
  */
 function reverseEngineerSetOfTypes(x: Iterable<any>, options?: FieldOptions): SmartType | null {
-    let type: SmartType | null = null
+    // Create a list of unique types
+    const types: SmartType[] = []     // running list of all types we've seen
     for (const y of x) {
-        type = reverseEngineerType(y, options)
-        break       // for now
+        // If we've seen this before, don't add another type to the list
+        let sawTypeBefore = false
+        for (const t2 of types) {
+            if (t2.isOfType(y, true)) {
+                sawTypeBefore = true
+                break
+            }
+        }
+        if (!sawTypeBefore) {
+            types.push(reverseEngineerType(y, options))
+        }
     }
-    return type
+    // Special case: No types
+    if (types.length == 0) return null
+    // If one type, it's easy
+    if (types.length == 1) return types[0]
+    // Multiple types, so create an alternation
+    return OR(...types)
 }
