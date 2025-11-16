@@ -14,6 +14,10 @@ class SmartString extends SmartType<string, string> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown) {
+        return typeof x === "string"
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: string): U {
         return visitor.visitString(x)
     }

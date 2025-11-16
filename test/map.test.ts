@@ -14,6 +14,9 @@ test("set", () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, new Set([2, 1])), "[n:1,n:2]", "elements got sorted along the way")
     T.eq(ty.toSimplified(new Set([2, 1])), simplify(new Set([2, 1])))
+    T.eq(ty.isOfType({}), false)
+    T.eq(ty.isOfType([]), false)
+    T.eq(ty.isOfType(new Set(["str"])), true, "not checking inside")
 
     passes(true, ty, new Set([]), new Set([1]), new Set([1, 2, 3]))
     fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", new Set(["hi"]), new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))
@@ -48,6 +51,10 @@ test("map from map", () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, new Map([[2, "b"], [1, "a"]])), "[[n:1,s:a],[n:2,s:b]]", "elements got sorted along the way")
     T.eq(ty.toSimplified(new Map([[2, "b"], [1, "a"]])), [[1, "a"], [2, "b"]])
+    T.eq(ty.isOfType({}), false)
+    T.eq(ty.isOfType([]), false)
+    T.eq(ty.isOfType(["foo"]), false)
+    T.eq(ty.isOfType(new Map([[null, null]])), true, "not checking types inside")
 
     passes(true, ty, new Map([]), new Map([[0, ""]]), new Map([[123, "abc"], [0, ""]]))
     fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", [], [1, 2, 3], new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))

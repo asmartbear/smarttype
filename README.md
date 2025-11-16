@@ -38,6 +38,9 @@ const js = myType.toJSON(obj)
 const o2 = myType.fromJSON(js)
 // Like `@asmartbear/simplified` but keeps objects opaque
 console.log(myType.toSimplified(obj))
+// Checks whether a type is valid, and tells Typescript too.
+// Doesn't include full validation and transformation like `input()`.
+assert(myType.isOfType(obj))
 ```
 
 

@@ -21,6 +21,14 @@ class SmartLiteral<T extends Primative> extends SmartType<T, T> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown): x is T {
+        if (isPrimative(x)) {
+            const i = this.values.indexOf(x as any)
+            if (i >= 0) return true
+        }
+        return false
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {
         switch (typeof x) {
             // case 'undefined': return visitor.visitUndefined(x)

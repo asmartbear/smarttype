@@ -1,5 +1,21 @@
 import * as V from "../src/number"
+import { toFromJSON } from "./moreutil"
 import * as T from "./testutil"
+
+test('number to JSON', () => {
+    let ty = V.NUM()
+    toFromJSON(ty, 123, 123)
+    toFromJSON(ty, -12.34, -12.34)
+    toFromJSON(ty, Number.POSITIVE_INFINITY, "Inf")
+    toFromJSON(ty, Number.NEGATIVE_INFINITY, "-Inf")
+    toFromJSON(ty, Number.NaN, "NaN")
+    toFromJSON(ty, Number.EPSILON, Number.EPSILON)
+    toFromJSON(ty, -Number.EPSILON, -Number.EPSILON)
+    // Bad JSON
+    T.throws(() => ty.toJSON("foo" as any))
+    T.throws(() => ty.fromJSON("foo"))
+    T.eq(ty.toSimplified(123), 123)
+})
 
 test('number clamped', () => {
     let ty = V.NUM().clamp(0, 10)

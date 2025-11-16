@@ -34,6 +34,10 @@ class SmartTuple<ST extends readonly SmartType<any>[], J extends JSONTuple> exte
         return result as NativeTupleFor<ST>
     }
 
+    isOfType(x: unknown): x is NativeTupleFor<ST> {
+        return Array.isArray(x) && x.length == this.types.length
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: NativeTupleFor<ST>): U {
         return visitor.visitTuple(
             x.map((y, i) => this.types[i].visit(visitor, y))

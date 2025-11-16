@@ -20,6 +20,10 @@ class SmartDate extends SmartType<Date, number> {
         return visitor.visitDate(x)
     }
 
+    isOfType(x: unknown) {
+        return x instanceof Date
+    }
+
     toJSON(x: Date) {
         return x.getTime()      // the most efficient representation
     }

@@ -19,6 +19,10 @@ class SmartSet<T, ST extends SmartType<T>> extends SmartType<Set<T>, JSONType[]>
         throw new ValidationError(this, x, "Expected Array or Set")
     }
 
+    isOfType(x: unknown) {
+        return x instanceof Set
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: Set<T>): U {
         return visitor.visitSet(Array.from(x).sort().map(y => this.typ.visit(visitor, y)))
     }

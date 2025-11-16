@@ -10,13 +10,17 @@ class SmartUndefined extends SmartType<undefined, typeof JS_UNDEFINED_SIGNAL> {
 
     get canBeUndefined() { return true }
 
-    visit<U>(visitor: SmartTypeVisitor<U>, x: undefined): U {
-        return visitor.visitUndefined(x)
-    }
-
     input(x: unknown, strict: boolean = true): undefined {
         if (typeof x === "undefined") return x
         throw new ValidationError(this, x)
+    }
+
+    isOfType(x: unknown) {
+        return x === undefined
+    }
+
+    visit<U>(visitor: SmartTypeVisitor<U>, x: undefined): U {
+        return visitor.visitUndefined(x)
     }
 
     toJSON(x: any): typeof JS_UNDEFINED_SIGNAL {

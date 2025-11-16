@@ -11,6 +11,10 @@ class SmartNull extends SmartType<null, null> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown) {
+        return x === null
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: null): U {
         return visitor.visitNull(x)
     }

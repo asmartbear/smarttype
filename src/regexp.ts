@@ -21,6 +21,10 @@ class SmartRegexp extends SmartType<RegExp, string> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown) {
+        return x instanceof RegExp
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: RegExp): U {
         return visitor.visitRegExp(x)
     }

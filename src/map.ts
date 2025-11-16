@@ -27,6 +27,10 @@ class SmartMap<
         return new Map(Object.entries(x).map(([k, v]) => [this.tKey.input(k, strict), this.tValue.input(v, strict)] as const))
     }
 
+    isOfType(x: unknown) {
+        return x instanceof Map
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: Map<K, V>): U {
         return visitor.visitMap(
             Array.from(x).sort().map(

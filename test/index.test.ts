@@ -26,6 +26,7 @@ test('smart undefined', () => {
     T.eq(ty.canBeUndefined, true)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, undefined), "undefined")
+    T.eq(ty.isOfType(null), false)
 
     // strict
     passes(true, ty, undefined)
@@ -43,6 +44,7 @@ test('smart null', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, null), "null")
+    T.eq(ty.isOfType(undefined), false)
 
     // strict
     passes(true, ty, null)
@@ -60,6 +62,9 @@ test('smart boolean', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, true), "b:true")
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(0), false)
+    T.eq(ty.isOfType("true"), false)
 
     // strict
     passes(true, ty, false, true)
@@ -95,6 +100,7 @@ test('smart number', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, 123), "n:123")
+    T.eq(ty.isOfType("0"), false)
 
     // strict
     passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
@@ -126,26 +132,16 @@ test('smart number', () => {
     fails(true, ty, -Number.EPSILON, 10.001, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
 })
 
-test('number to JSON', () => {
-    let ty = V.NUM()
-    toFromJSON(ty, 123, 123)
-    toFromJSON(ty, -12.34, -12.34)
-    toFromJSON(ty, Number.POSITIVE_INFINITY, "Inf")
-    toFromJSON(ty, Number.NEGATIVE_INFINITY, "-Inf")
-    toFromJSON(ty, Number.NaN, "NaN")
-    toFromJSON(ty, Number.EPSILON, Number.EPSILON)
-    toFromJSON(ty, -Number.EPSILON, -Number.EPSILON)
-    // Bad JSON
-    T.throws(() => ty.fromJSON("foo"))
-    T.eq(ty.toSimplified(123), 123)
-})
-
 test('smart string', () => {
     let ty = V.STR()
     T.eq(ty.description, "string")
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, "foo"), "s:foo")
+    T.eq(ty.isOfType(0), false)
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType([]), false)
 
     // strict
     passes(true, ty, "", "a", "foo bar", "foo\nbar")
@@ -206,6 +202,7 @@ test('smart string', () => {
     // JSON
     ty = V.STR()
     toFromJSON(ty, "123", "123")
+    T.throws(() => ty.toJSON(2 as any))
     T.eq(ty.toSimplified("123"), "123")
 })
 
@@ -234,6 +231,12 @@ test('smart array', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, [1, 2, 3]), "[n:1,n:2,n:3]")
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(""), false)
+    T.eq(ty.isOfType(new Date()), false)
+    T.eq(ty.isOfType(["foo"]), true, "we're not checking inside the array")
+    T.eq(ty.isOfType(["foo", null]), true, "we're not checking inside the array")
 
     // strict
     passes(true, ty, [], [1], [2, 1])
@@ -267,6 +270,14 @@ test('smart tuple x2', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, new Set(["0", "1"]))
     T.eq(ty.visit(TestVisitor.SINGLETON, [123, "foo"]), "[n:123,s:foo]")
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(""), false)
+    T.eq(ty.isOfType(new Date()), false)
+    T.eq(ty.isOfType([]), false)
+    T.eq(ty.isOfType([null]), false)
+    T.eq(ty.isOfType([null, null]), true, "not really because of the inners, but we only check the outer level")
+    T.eq(ty.isOfType([null, null, null]), false)
 
     // strict
     passes(true, ty, [123, "foo"], [321, "123"])
@@ -333,6 +344,9 @@ test('transform', () => {
     T.eq(ty.description, "string>>minLen=4>>css quad>>{left:number,top:number,right:number,bottom:number}")
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, new Set(["left", "top", "right", "bottom"]))
+    T.eq(ty.isOfType({}), true, "not checking inside")
+    T.eq(ty.isOfType({ left: null }), true, "not checking inside")
+    T.eq(ty.isOfType({ foo: null }), true, "not checking inside")
 
     T.eq(ty.input("1 2 3 4"), { left: 4, top: 1, right: 2, bottom: 3 })
     T.eq(ty.input("12 2.6 -3 4"), { left: 4, top: 12, right: 2.6, bottom: -3 })

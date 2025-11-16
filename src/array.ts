@@ -26,6 +26,10 @@ class SmartArray<T, J extends JSONType, EL extends SmartType<T, J>> extends Smar
         return result
     }
 
+    isOfType(x: unknown) {
+        return Array.isArray(x)
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: T[]): U {
         return visitor.visitArray(x.map(y => this.elementType.visit(visitor, y)))
     }

@@ -20,6 +20,10 @@ class SmartBoolean extends SmartType<boolean, boolean> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown) {
+        return typeof x === "boolean"
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: boolean): U {
         return visitor.visitBoolean(x)
     }

@@ -37,6 +37,10 @@ class SmartClass<T extends object> extends SmartType<T, null> {
 
     }
 
+    isOfType(x: unknown): x is T {
+        return x instanceof this.cls
+    }
+
     toJSON(x: T): null {
         throw new Error("Smart class validator does not support conversion to JSON")
     }

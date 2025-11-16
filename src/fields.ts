@@ -1,5 +1,6 @@
 import { ValidationError, SmartType, NativeFor, __DEFAULT_VALUE, JsonFor, SmartTypeVisitor } from "./common"
 import { OPT } from "./alternation"
+import { isPlainObject } from "@asmartbear/simplified"
 
 export type FieldOptions = {
     /** If `false`, throw exception if extra fields are found, otherwise (default) ignore them, keeping only known fields */
@@ -66,6 +67,10 @@ class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends S
             }
         }
         return Object.fromEntries(ent) as NativeFor<ST>
+    }
+
+    isOfType(x: unknown): x is NativeFor<ST> {
+        return isPlainObject(x)
     }
 
     visit<U>(visitor: SmartTypeVisitor<U>, x: NativeFor<ST>): U {

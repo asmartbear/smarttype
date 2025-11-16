@@ -12,14 +12,15 @@ export function passes(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
                 `(type: ${typeof y})`
             );
         }
+        T.eq(ty.isOfType(y), true)
     }
 }
 
 /** These value fail validation. */
-export function fails(strict: boolean, a: V.SmartType, ...x: unknown[]) {
+export function fails(strict: boolean, ty: V.SmartType, ...x: unknown[]) {
     for (const y of x) {
-        T.throws(() => a.input(y, strict), V.ValidationError, JSON.stringify(y))
-        T.eq(a.inputReturnError(y, strict) instanceof V.ValidationError, true)
+        T.throws(() => ty.input(y, strict), V.ValidationError, JSON.stringify(y))
+        T.eq(ty.inputReturnError(y, strict) instanceof V.ValidationError, true)
     }
 }
 

@@ -97,6 +97,12 @@ export interface INativeParser<T> extends IDescriptive {
      * @throws {ValidationError} If the input is invalid
      */
     input(x: unknown, strict: boolean): T
+
+    /**
+     * True if the given value is of the correct output type that `input()` might give, as a Typescript type-guard.
+     * This doesn't tell you for certain whether it passed all the validations; just that it's of the right type.
+     */
+    isOfType(x: unknown): x is T;
 }
 
 /**
@@ -249,6 +255,7 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
     }
 
     abstract input(x: unknown, strict?: boolean): T;
+    abstract isOfType(x: unknown): x is T;
     abstract visit<U>(visitor: SmartTypeVisitor<U>, x: T): U;
     abstract toJSON(x: T): J;
     abstract fromJSON(js: JSONType): T;

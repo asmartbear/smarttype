@@ -14,6 +14,14 @@ class SmartAlternation<T> extends SmartType<T, AlternationJSON> {
         super('(' + types.map(t => t.description).join('|') + ')')
     }
 
+    /** Finds the first type that matches this native value, or `undefined` if none match. */
+    private getTypeForNative(x: unknown): SmartType<T> | undefined {
+        for (const t of this.types) {
+            if (t.isOfType(x)) return t
+        }
+        return undefined
+    }
+
     // istanbul ignore next
     get constructorArgs() { return [this.types] }
 
@@ -30,26 +38,20 @@ class SmartAlternation<T> extends SmartType<T, AlternationJSON> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown): x is T {
+        return this.getTypeForNative(x) !== undefined
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {
-        // Find the type that strictly accepts this value, then encode it in JSON
-        for (const t of this.types) {
-            try {
-                const y = t.toJSON(x)
-                return t.visit(visitor, x)
-            } catch { }
-        }
+        const t = this.getTypeForNative(x)
+        if (t) return t.visit(visitor, x)
         // istanbul ignore next
         throw new ValidationError(this, x, "expected validated type for visitor")
     }
 
     toJSON(x: T): AlternationJSON {
-        // Find the type that strictly accepts this value, then encode it in JSON
-        for (const t of this.types) {
-            try {
-                const y = t.toJSON(x)
-                return { t: t.description, x: y }
-            } catch { }
-        }
+        const t = this.getTypeForNative(x)
+        if (t) return { t: t.description, x: t.toJSON(x) }
         throw new ValidationError(this, x, "expected validated type for JSON")
     }
 
@@ -84,14 +86,19 @@ class SmartOptional<T, J extends JSONType> extends SmartType<T | undefined, J | 
         return true
     }
 
-    visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {
-        if (x === undefined) return visitor.visitUndefined(undefined)
-        return this.typ.visit(visitor, x)
-    }
-
     input(x: unknown, strict: boolean = true): T | undefined {
         if (x === undefined) return undefined
         return this.typ.input(x, strict)
+    }
+
+    isOfType(x: unknown): x is T {
+        if (x === undefined) return true
+        return this.typ.isOfType(x)
+    }
+
+    visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {
+        if (x === undefined) return visitor.visitUndefined(undefined)
+        return this.typ.visit(visitor, x)
     }
 
     toJSON(x: T): J | typeof JS_UNDEFINED_SIGNAL {

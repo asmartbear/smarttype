@@ -15,6 +15,9 @@ test('smart literal primative', () => {
     T.eq(ty.input("none"), "none")
     passes(true, ty, "none", "left", "right", "both")
     fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", " both", "none.", "non", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false })
+    T.eq(ty.isOfType("taco"), false)
+    T.eq(ty.isOfType(""), false)
+    T.eq(ty.isOfType(123), false)
 
     // JSON
     toFromJSON(ty, "none", "none")
@@ -33,6 +36,12 @@ test('smart literal with every type', () => {
     T.eq(ty.toSimplified(0), 0)
     T.eq(ty.toSimplified(null), null)
     T.eq(ty.toSimplified("none"), "none")
+    T.eq(ty.isOfType(0), true)
+    T.eq(ty.isOfType("0"), false)
+    T.eq(ty.isOfType("none"), true)
+    T.eq(ty.isOfType("some"), false)
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType(null), true)
 })
 
 test('smart optional without being embedded in an object', () => {
@@ -46,6 +55,11 @@ test('smart optional without being embedded in an object', () => {
     // strict
     passes(true, ty, undefined, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN)
     fails(true, ty, null, false, true, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 })
+    T.eq(ty.isOfType(undefined), true)
+    T.eq(ty.isOfType(0), true)
+    T.eq(ty.isOfType(123), true)
+    T.eq(ty.isOfType("123"), false)
+    T.eq(ty.isOfType(null), false)
 
     // not strict
     T.eq(ty.input(123), 123)
@@ -66,8 +80,16 @@ test('smart or with primatives', () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, 123), "n:123")
     T.eq(ty.visit(TestVisitor.SINGLETON, "123"), "s:123")
+    T.throws(() => ty.visit(TestVisitor.SINGLETON, null as any))
     T.eq(ty.toSimplified(123), 123)
     T.eq(ty.toSimplified("123"), "123")
+    T.eq(ty.isOfType(0), true)
+    T.eq(ty.isOfType(1), true)
+    T.eq(ty.isOfType(""), true)
+    T.eq(ty.isOfType("foo"), true)
+    T.eq(ty.isOfType(true), false)
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType(new Date()), false)
 
     // strict
     passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar")
@@ -104,6 +126,11 @@ test('smart class', () => {
     T.eq(ty.visit(TestVisitor.SINGLETON, a), "MyObjA()")
     T.eq(ty.visit(TestVisitor.SINGLETON, b), "MyObjB()")
     T.eq(ty.toSimplified(b), "MyObjB()")
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(0), false)
+    T.eq(ty.isOfType({}), false)
+    T.eq(ty.isOfType(new Date()), false)
+    T.eq(ty.isOfType(MyObjA), false, "the class object rather than an instance")
 
     // validate
     passes(true, ty, a, b)
@@ -120,6 +147,9 @@ test('smart date', () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, new Date(1234)), "Date()")
     T.eq(ty.toSimplified(new Date(1234)), "Date(1234)")
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(/foo/), false)
+    T.eq(ty.isOfType(new Date()), true)
 
     // strict
     passes(true, ty, new Date(123456789))
@@ -144,6 +174,8 @@ test('smart regexp', () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, /foo/gi), "RegExp()")
     T.eq(ty.toSimplified(/foo/gi), "/foo/gi")
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(new Date()), false)
 
     // strict
     passes(true, ty, /foo/gi)

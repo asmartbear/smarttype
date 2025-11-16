@@ -23,6 +23,10 @@ class SmartNumber extends SmartType<number, number | "Inf" | "-Inf" | "NaN"> {
         throw new ValidationError(this, x)
     }
 
+    isOfType(x: unknown) {
+        return typeof x === "number"
+    }
+
     visit<U>(visitor: SmartTypeVisitor<U>, x: number): U {
         return visitor.visitNumber(x)
     }
