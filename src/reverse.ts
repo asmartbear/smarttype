@@ -8,6 +8,8 @@ import { NIL } from "./null"
 import { ARRAY } from "./array"
 import { CLASS } from "./class"
 import { OBJ, FieldOptions } from "./fields"
+import { DATE } from './date'
+import { REGEXP } from './regexp'
 
 /** Given a type, returns the Class of that type. */
 type ClassOf<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T);
@@ -26,6 +28,8 @@ export type SmartTypeFrom<T> =
     T extends boolean ? ReturnType<typeof BOOL> :
     T extends number ? ReturnType<typeof NUM> :
     T extends string ? ReturnType<typeof STR> :
+    T extends Date ? ReturnType<typeof DATE> :
+    T extends RegExp ? ReturnType<typeof REGEXP> :
     T extends ClassOf<infer U> ? SmartType<U> :
     HasFunction<T> extends true ? SmartType<T> :      // catch class-instances before generic structures
     T extends Array<infer U> ? SmartType<NativeFor<SmartTypeFrom<U>>[]> :       // rewrap inner
@@ -53,8 +57,10 @@ export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeF
             throw new Error(`Unsupported native type for reverse-engineering a data type: ${typeof x}`)
 
         case 'object':
+
             // null
             if (x === null) return NIL() as any
+
             // Arrays
             if (Array.isArray(x)) {
                 if (x.length == 0) {
@@ -62,17 +68,24 @@ export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeF
                 }
                 return ARRAY(reverseEngineerType(x[0], options)) as any
             }
+
+            // The known built-in objects
+            if (x instanceof Date) return DATE() as any
+            if (x instanceof RegExp) return REGEXP() as any
+
             // Direct class-derived objects are simply validated that they are that type of object
             const derivedClass = getClassOf(x)
             if (derivedClass) {
                 return CLASS(derivedClass) as any
             }
+
             // Remaining objects are treated as generic fields
             return OBJ(Object.fromEntries(
                 Object.entries(x).map(
                     ([k, v]) => [k, reverseEngineerType(v, options)]
                 )
             ), options) as any
+
         default:
             throw new Error(`Unsupported native type for reverse-engineering a data type: ${typeof x}`)
     }

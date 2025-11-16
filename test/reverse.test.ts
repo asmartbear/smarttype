@@ -109,9 +109,12 @@ test('reverse engineer classes inside objects', () => {
 })
 
 test('reverse engineer known objects', () => {
-    const a = new MyTestClassA()
-    const d = new Date()
-    const ty = REV({ a: MyTestClassA, d })
-    T.be(ty.description, '{a:MyTestClassA,d:Date}')
-    T.eq(ty.input({ a, d }), { a, d })
+    const d = new Date(1763317395302)
+    const re = /foo/gi
+    const ty = REV({ d, re })
+    const obj = { d, re }
+    T.be(ty.description, '{d:date,re:regexp}')
+    T.eq(ty.isOfType(obj, true), true)
+    T.eq(ty.input(obj), obj)
+    T.eq(ty.toJSON(obj), { d: 1763317395302, re: "/foo/gi" }, "shows we wrapped the objects properly")
 })
