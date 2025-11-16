@@ -15,9 +15,9 @@ class SmartAlternation<T> extends SmartType<T, AlternationJSON> {
     }
 
     /** Finds the first type that matches this native value, or `undefined` if none match. */
-    private getTypeForNative(x: unknown): SmartType<T> | undefined {
+    private getTypeForNative(x: unknown, deep?: boolean): SmartType<T> | undefined {
         for (const t of this.types) {
-            if (t.isOfType(x)) return t
+            if (t.isOfType(x, deep)) return t
         }
         return undefined
     }
@@ -38,19 +38,19 @@ class SmartAlternation<T> extends SmartType<T, AlternationJSON> {
         throw new ValidationError(this, x)
     }
 
-    isOfType(x: unknown): x is T {
-        return this.getTypeForNative(x) !== undefined
+    isOfType(x: unknown, deep?: boolean): x is T {
+        return this.getTypeForNative(x, deep) !== undefined
     }
 
     visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {
-        const t = this.getTypeForNative(x)
+        const t = this.getTypeForNative(x, false)
         if (t) return t.visit(visitor, x)
         // istanbul ignore next
         throw new ValidationError(this, x, "expected validated type for visitor")
     }
 
     toJSON(x: T): AlternationJSON {
-        const t = this.getTypeForNative(x)
+        const t = this.getTypeForNative(x, false)
         if (t) return { t: t.description, x: t.toJSON(x) }
         throw new ValidationError(this, x, "expected validated type for JSON")
     }
@@ -91,9 +91,9 @@ class SmartOptional<T, J extends JSONType> extends SmartType<T | undefined, J | 
         return this.typ.input(x, strict)
     }
 
-    isOfType(x: unknown): x is T {
+    isOfType(x: unknown, deep?: boolean): x is T {
         if (x === undefined) return true
-        return this.typ.isOfType(x)
+        return this.typ.isOfType(x, deep)
     }
 
     visit<U>(visitor: SmartTypeVisitor<U>, x: T): U {

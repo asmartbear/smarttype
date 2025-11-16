@@ -21,7 +21,7 @@ class SmartRegexp extends SmartType<RegExp, string> {
         throw new ValidationError(this, x)
     }
 
-    isOfType(x: unknown) {
+    isOfType(x: unknown, deep: boolean) {
         return x instanceof RegExp
     }
 

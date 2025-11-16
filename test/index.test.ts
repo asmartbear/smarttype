@@ -237,6 +237,10 @@ test('smart array', () => {
     T.eq(ty.isOfType(new Date()), false)
     T.eq(ty.isOfType(["foo"]), true, "we're not checking inside the array")
     T.eq(ty.isOfType(["foo", null]), true, "we're not checking inside the array")
+    T.eq(ty.isOfType(["foo"], true), false)
+    T.eq(ty.isOfType(["foo", null], true), false)
+    T.eq(ty.isOfType([0], true), true)
+    T.eq(ty.isOfType([0, 2, "foo", 3], true), false)
 
     // strict
     passes(true, ty, [], [1], [2, 1])
@@ -276,8 +280,12 @@ test('smart tuple x2', () => {
     T.eq(ty.isOfType(new Date()), false)
     T.eq(ty.isOfType([]), false)
     T.eq(ty.isOfType([null]), false)
-    T.eq(ty.isOfType([null, null]), true, "not really because of the inners, but we only check the outer level")
     T.eq(ty.isOfType([null, null, null]), false)
+    T.eq(ty.isOfType([null, null]), true, "not really because of the inners, but we only check the outer level")
+    T.eq(ty.isOfType([null, null], true), false)
+    T.eq(ty.isOfType([0, null], true), false)
+    T.eq(ty.isOfType([null, "hi"], true), false)
+    T.eq(ty.isOfType([0, "hi"], true), true)
 
     // strict
     passes(true, ty, [123, "foo"], [321, "123"])
@@ -347,6 +355,11 @@ test('transform', () => {
     T.eq(ty.isOfType({}), true, "not checking inside")
     T.eq(ty.isOfType({ left: null }), true, "not checking inside")
     T.eq(ty.isOfType({ foo: null }), true, "not checking inside")
+    T.eq(ty.isOfType({ foo: null }, true), false)
+    T.eq(ty.isOfType({ left: null }, true), false)
+    T.eq(ty.isOfType({ left: 0 }, true), false)
+    T.eq(ty.isOfType({ left: 0, top: 1, right: 2, bottom: "hi" }, true), false)
+    T.eq(ty.isOfType({ left: 0, top: 1, right: 2, bottom: 4 }, true), true)
 
     T.eq(ty.input("1 2 3 4"), { left: 4, top: 1, right: 2, bottom: 3 })
     T.eq(ty.input("12 2.6 -3 4"), { left: 4, top: 12, right: 2.6, bottom: -3 })

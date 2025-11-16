@@ -27,8 +27,15 @@ class SmartMap<
         return new Map(Object.entries(x).map(([k, v]) => [this.tKey.input(k, strict), this.tValue.input(v, strict)] as const))
     }
 
-    isOfType(x: unknown) {
-        return x instanceof Map
+    isOfType(x: unknown, deep?: boolean): x is Map<K, V> {
+        if (!(x instanceof Map)) return false
+        if (deep) {
+            for (const [k, v] of x.entries()) {
+                if (!this.tKey.isOfType(k, deep)) return false
+                if (!this.tValue.isOfType(v, deep)) return false
+            }
+        }
+        return true
     }
 
     visit<U>(visitor: SmartTypeVisitor<U>, x: Map<K, V>): U {

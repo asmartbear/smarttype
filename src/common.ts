@@ -101,8 +101,11 @@ export interface INativeParser<T> extends IDescriptive {
     /**
      * True if the given value is of the correct output type that `input()` might give, as a Typescript type-guard.
      * This doesn't tell you for certain whether it passed all the validations; just that it's of the right type.
+     * 
+     * @param x the value to validate
+     * @param deep if true, recursively check structured types, else only look at the first level
      */
-    isOfType(x: unknown): x is T;
+    isOfType(x: unknown, deep?: boolean): x is T;
 }
 
 /**
@@ -255,7 +258,7 @@ export abstract class SmartType<T = any, J extends JSONType = JSONType> implemen
     }
 
     abstract input(x: unknown, strict?: boolean): T;
-    abstract isOfType(x: unknown): x is T;
+    abstract isOfType(x: unknown, deep?: boolean): x is T;
     abstract visit<U>(visitor: SmartTypeVisitor<U>, x: T): U;
     abstract toJSON(x: T): J;
     abstract fromJSON(js: JSONType): T;

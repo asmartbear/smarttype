@@ -40,7 +40,7 @@ const o2 = myType.fromJSON(js)
 console.log(myType.toSimplified(obj))
 // Checks whether a type is valid, and tells Typescript too.
 // Doesn't include full validation and transformation like `input()`.
-assert(myType.isOfType(obj))
+assert(myType.isOfType(obj,true))
 ```
 
 

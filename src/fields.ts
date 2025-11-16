@@ -69,8 +69,19 @@ class SmartFields<ST extends { readonly [K: string]: SmartType<any> }> extends S
         return Object.fromEntries(ent) as NativeFor<ST>
     }
 
-    isOfType(x: unknown): x is NativeFor<ST> {
-        return isPlainObject(x)
+    isOfType(x: unknown, deep?: boolean): x is NativeFor<ST> {
+        if (!isPlainObject(x)) return false
+        if (deep) {
+            for (const [k, t] of Object.entries(this.types)) {
+                const y = (x as any)[k]
+                if (y === undefined) {      // if missing or undefined, that's ok exactly if this type is allowed to be undefined
+                    if (!t.canBeUndefined) return false
+                } else {
+                    if (!t.isOfType(y, deep)) return false      // value is present, so much be of the correct type
+                }
+            }
+        }
+        return true
     }
 
     visit<U>(visitor: SmartTypeVisitor<U>, x: NativeFor<ST>): U {

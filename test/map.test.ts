@@ -17,6 +17,9 @@ test("set", () => {
     T.eq(ty.isOfType({}), false)
     T.eq(ty.isOfType([]), false)
     T.eq(ty.isOfType(new Set(["str"])), true, "not checking inside")
+    T.eq(ty.isOfType(new Set(["str"]), true), false)
+    T.eq(ty.isOfType(new Set([1]), true), true)
+    T.eq(ty.isOfType(new Set([]), true), true)
 
     passes(true, ty, new Set([]), new Set([1]), new Set([1, 2, 3]))
     fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", new Set(["hi"]), new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))
@@ -55,6 +58,10 @@ test("map from map", () => {
     T.eq(ty.isOfType([]), false)
     T.eq(ty.isOfType(["foo"]), false)
     T.eq(ty.isOfType(new Map([[null, null]])), true, "not checking types inside")
+    T.eq(ty.isOfType(new Map([[null, null]]), true), false)
+    T.eq(ty.isOfType(new Map([[0, null]]), true), false)
+    T.eq(ty.isOfType(new Map([[null, "foo"]]), true), false)
+    T.eq(ty.isOfType(new Map([[0, "foo"]]), true), true)
 
     passes(true, ty, new Map([]), new Map([[0, ""]]), new Map([[123, "abc"], [0, ""]]))
     fails(true, ty, undefined, null, false, true, 0, -2, "", "foo", "new Map", [], [1, 2, 3], new Map([["0", ""]]), new Map([["123", "abc"], ["0", ""]]))

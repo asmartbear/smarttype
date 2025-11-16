@@ -14,6 +14,12 @@ test('smart fields', () => {
     T.eq(ty.keys, new Set(["x", "s", "b"]))
     T.eq(ty.visit(TestVisitor.SINGLETON, { x: 1, s: "hi", b: false }), "[[s:x,n:1],[s:s,s:hi],[s:b,b:false]]")
     T.eq(ty.toSimplified({ x: 1, s: "hi", b: false }), simplify({ x: 1, s: "hi", b: false }))
+    T.eq(ty.isOfType({}), true, "not checking inside")
+    T.eq(ty.isOfType({}, true), false)
+    T.eq(ty.isOfType({ s: "foo", b: false }, true), false)
+    T.eq(ty.isOfType({ x: "foo", s: "foo", b: false }, true), false)
+    T.eq(ty.isOfType({ x: 3, s: "foo", b: false }, true), true)
+    T.eq(ty.isOfType({ x: 3, s: "foo", b: false, extra: "yup" }, true), true, "extra fields are still the right type")
 
     // strict
     passes(true, ty, { x: 0, s: "", b: false }, { x: 123, s: "cool", b: true })
@@ -58,6 +64,15 @@ test('smart fields with optional fields', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, new Set(["x", "s", "b"]))
     T.eq(ty.visit(TestVisitor.SINGLETON, { x: 1, b: false }), "[[s:x,n:1],[s:b,b:false]]")
+    T.eq(ty.isOfType({}, true), false)
+    T.eq(ty.isOfType({ b: true }, true), true)
+    T.eq(ty.isOfType({ s: "foo", b: true }, true), true)
+    T.eq(ty.isOfType({ s: 123, b: true }, true), false, "can be missing but not the wrong type")
+    T.eq(ty.isOfType({ x: "foo", b: true }, true), false, "can be missing but not the wrong type")
+    T.eq(ty.isOfType({ b: 0 }, true), false)
+    T.eq(ty.isOfType(null), false)
+    T.eq(ty.isOfType(undefined), false)
+    T.eq(ty.isOfType("hi"), false)
 
     T.eq(ty.input({ b: true }), { b: true }, "can just be missing")
     T.eq(ty.input({ b: true }), { x: undefined, s: undefined, b: true }, "can be explicitly set to undefined")
