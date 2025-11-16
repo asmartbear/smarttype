@@ -48,6 +48,29 @@ test('reverse-engineer arrays', () => {
     T.be(REV([true, 1, "hi", 2, false]).description, 'boolean[]')
 })
 
+test('reverse-engineer sets', () => {
+    // cannot be empty
+    T.throws(() => REV(new Set()))
+
+    // single type
+    T.be(REV(new Set([1, 2, 3])).description, 'Set(number)')
+    T.be(REV(new Set([true])).description, 'Set(boolean)')
+
+    // mixed types aren't currently supported; we could look through all elements and create an alternation if we wanted to
+    T.be(REV(new Set([true, 1, "hi", 2, false])).description, 'Set(boolean)')
+})
+
+test('reverse-engineer maps', () => {
+    // cannot be empty
+    T.throws(() => REV(new Map()))
+
+    // single type
+    T.be(REV(new Map([[1, "a"], [10, "b"]])).description, '{number:string}')
+
+    // mixed types aren't currently supported; we could look through all elements and create an alternation if we wanted to
+    T.be(REV(new Map<number | string, string | boolean>([[1, "a"], ["b", false]])).description, '{number:string}')
+})
+
 test('reverse-engineer fields', () => {
     T.be(REV({}).description, '{}')
     T.be(REV({ a: 123 }).description, '{a:number}')

@@ -10,6 +10,8 @@ import { CLASS } from "./class"
 import { OBJ, FieldOptions } from "./fields"
 import { DATE } from './date'
 import { REGEXP } from './regexp'
+import { SET } from './set'
+import { MAP } from './map'
 
 /** Given a type, returns the Class of that type. */
 type ClassOf<T> = (abstract new (...args: any[]) => T) | (new (...args: any[]) => T);
@@ -30,6 +32,8 @@ export type SmartTypeFrom<T> =
     T extends string ? ReturnType<typeof STR> :
     T extends Date ? ReturnType<typeof DATE> :
     T extends RegExp ? ReturnType<typeof REGEXP> :
+    T extends Set<infer U> ? SmartType<Set<U>, JSONType[]> :
+    T extends Map<infer K, infer V> ? SmartType<Map<K, V>, JSONType[]> :
     T extends ClassOf<infer U> ? SmartType<U> :
     HasFunction<T> extends true ? SmartType<T> :      // catch class-instances before generic structures
     T extends Array<infer U> ? SmartType<NativeFor<SmartTypeFrom<U>>[]> :       // rewrap inner
@@ -63,10 +67,24 @@ export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeF
 
             // Arrays
             if (Array.isArray(x)) {
-                if (x.length == 0) {
-                    throw new Error(`Arrays cannot be empty for reverse-engineering`)
-                }
-                return ARRAY(reverseEngineerType(x[0], options)) as any
+                const typ = reverseEngineerSetOfTypes(x, options)
+                if (typ == null) throw new Error(`Arrays cannot be empty for reverse-engineering`)
+                return ARRAY(typ) as any
+            }
+
+            // Sets
+            if (x instanceof Set) {
+                const typ = reverseEngineerSetOfTypes(x, options)
+                if (typ == null) throw new Error(`Arrays cannot be empty for reverse-engineering`)
+                return SET(typ) as any
+            }
+
+            // Maps
+            if (x instanceof Map) {
+                const keyType = reverseEngineerSetOfTypes(x.keys(), options)
+                const valueType = reverseEngineerSetOfTypes(x.values(), options)
+                if (keyType == null || valueType == null) throw new Error(`Maps cannot be empty for reverse-engineering`)
+                return MAP(keyType, valueType) as any
             }
 
             // The known built-in objects
@@ -89,4 +107,22 @@ export function reverseEngineerType<T>(x: T, options?: FieldOptions): SmartTypeF
         default:
             throw new Error(`Unsupported native type for reverse-engineering a data type: ${typeof x}`)
     }
+}
+
+/**
+ * Given a set of types to reverse-engineer, e.g. from an array or set, returns the single
+ * reverse-engineered type for the whole set.  This is a concrete type if they're all of
+ * the same type, or some alternation if there are distinct sets of types.
+ * 
+ * Returns `null` if the list is empty, and therefore no type can be identified.
+ * 
+ * Right now we only look at the first one.
+ */
+function reverseEngineerSetOfTypes(x: Iterable<any>, options?: FieldOptions): SmartType | null {
+    let type: SmartType | null = null
+    for (const y of x) {
+        type = reverseEngineerType(y, options)
+        break       // for now
+    }
+    return type
 }
