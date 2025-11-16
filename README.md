@@ -41,6 +41,8 @@ console.log(myType.toSimplified(obj))
 // Checks whether a type is valid, and tells Typescript too.
 // Doesn't include full validation and transformation like `input()`.
 assert(myType.isOfType(obj,true))
+// Reverse-engineer an existing object into its types.
+const ty = V.reverseEngineerType(obj)
 ```
 
 
