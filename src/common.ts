@@ -118,24 +118,25 @@ export interface IMarshallJson<T, J extends JSONType> {
  * for example many built-in objects are visited as opaque objects, tuples are visited as arrays, maps are visited
  * as arrays of pairs.
  */
-export abstract class SmartTypeVisitor<T> {
+export abstract class SmartTypeVisitor<T, STRING extends T = T> {
     abstract visitUndefined(x: undefined): T
     abstract visitNull(x: null): T
     abstract visitBoolean(x: boolean): T
     abstract visitNumber(x: number): T
-    abstract visitString(x: string): T
+    abstract visitString(x: string): STRING
     abstract visitOpaqueObject(x: object): T
     abstract visitArray(x: T[]): T
 
     visitTuple(x: T[]): T { return this.visitArray(x) }
     visitDate(x: Date): T { return this.visitOpaqueObject(x) }
+    visitRegExp(x: RegExp): T { return this.visitOpaqueObject(x) }
     visitSet(x: T[]): T { return this.visitArray(x) }
     visitMap(x: [T, T][]): T { return this.visitArray(x.map(pair => this.visitArray(pair))) }
-    visitFields(x: [T, T][]): T { return this.visitMap(x) }
+    visitFields(x: [STRING, T][]): T { return this.visitMap(x) }
 }
 
 /** Visitor that converts like `simplify()` except we don't look into opaque objects and stuff like that. */
-class SmartTypeToSimplifiedVisitor extends SmartTypeVisitor<Simple> {
+class SmartTypeToSimplifiedVisitor extends SmartTypeVisitor<Simple, string> {
     // istanbul ignore next
     visitUndefined(x: undefined) { return x }
     visitNull(x: null) { return x }
@@ -144,7 +145,8 @@ class SmartTypeToSimplifiedVisitor extends SmartTypeVisitor<Simple> {
     visitString(x: string) { return x }
     visitArray(x: Simple[]) { return x }
     visitDate(x: Date) { return `Date(${x.getTime()})` }
-    visitFields(x: [Simple, Simple][]) { return Object.fromEntries(x) }
+    visitFields(x: [string, Simple][]) { return Object.fromEntries(x) }
+    visitRegExp(x: RegExp) { return String(x) }
 
     visitOpaqueObject(x: object) {
         // istanbul ignore next

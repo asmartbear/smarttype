@@ -1,6 +1,7 @@
 import * as T from "./testutil"
 import * as V from "../src/index"
 import { passes, fails, toFromJSON, failsWithErrorRegex, TestVisitor } from "./moreutil"
+import { simplify } from "@asmartbear/simplified"
 
 test('smart fields', () => {
     let ty = V.OBJ({
@@ -12,6 +13,7 @@ test('smart fields', () => {
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, new Set(["x", "s", "b"]))
     T.eq(ty.visit(TestVisitor.SINGLETON, { x: 1, s: "hi", b: false }), "[[s:x,n:1],[s:s,s:hi],[s:b,b:false]]")
+    T.eq(ty.toSimplified({ x: 1, s: "hi", b: false }), simplify({ x: 1, s: "hi", b: false }))
 
     // strict
     passes(true, ty, { x: 0, s: "", b: false }, { x: 123, s: "cool", b: true })
@@ -35,6 +37,7 @@ test('smart fields with defaults', () => {
     T.eq(ty.description, "{x:number=123,s:string=hi>>re=/hi/g->there,b:boolean=false}")
     T.eq(ty.canBeUndefined, false)
     T.eq(ty.keys, new Set(["x", "s", "b"]))
+    T.eq(ty.toSimplified({ x: 123, s: "there", b: true }), simplify({ x: 123, s: "there", b: true }))
 
     T.eq(ty.input({}), { x: 123, s: "hi", b: false }, "default means we don't run the replacement")
     T.eq(ty.input({ s: "taco" }), { x: 123, s: "taco", b: false }, "replacement didn't match")

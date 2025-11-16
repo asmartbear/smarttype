@@ -8,15 +8,19 @@ Data types that parse, validate, transform, marshal, compare, and hash.
 * Send anything to/from JSON, using "as native as possible," but with enough meta-data to support anything.
 * Get a simple string from any type.
 * Get a hash value of any type.
+* A Visitor pattern for types, with defaults that simplify implementations.
 
 ## Types
 
-* Supports primatives, arrays, objects with well-defined typed structures.
+* Supports primatives, arrays
+* Objects with well-defined typed structures including optional fields
 * Records and Maps with arbitrary key and value types
-* Tuples (arrays of fixed type and length)
+* Tuples (arrays of fixed length and element-types in each position)
 * Literals (one of a fixed set of primative values)
 * Alternations -- any of a set of types
-* Standard objects: `Date`
+* Standard objects:
+  * `Date` - as the object or parsed from a string
+  * `RegExp` - as the object, or with all features if a string like `"/foo/g"`, or an encoded simple substring
 
 ## Usage
 
@@ -29,8 +33,11 @@ const myType = V.OBJ({
 })
 // `obj` will be of type `{id:string,count:number}`, or throw exception.
 const obj = myType.input({id: "taco", count: 4})
-// JSON always works
-const js = obj.toJSON()
+// JSON is designed for transmission, e.g. `Date` is a number, not a string.
+const js = myType.toJSON(obj)
+const o2 = myType.fromJSON(js)
+// Like `@asmartbear/simplified` but keeps objects opaque
+console.log(myType.toSimplified(obj))
 ```
 
 

@@ -30,6 +30,9 @@ test('smart literal with every type', () => {
     T.eq(ty.visit(TestVisitor.SINGLETON, ""), "s:")
     T.eq(ty.visit(TestVisitor.SINGLETON, null), "null")
     T.eq(ty.visit(TestVisitor.SINGLETON, false), "b:false")
+    T.eq(ty.toSimplified(0), 0)
+    T.eq(ty.toSimplified(null), null)
+    T.eq(ty.toSimplified("none"), "none")
 })
 
 test('smart optional without being embedded in an object', () => {
@@ -63,6 +66,8 @@ test('smart or with primatives', () => {
     T.eq(ty.keys, undefined)
     T.eq(ty.visit(TestVisitor.SINGLETON, 123), "n:123")
     T.eq(ty.visit(TestVisitor.SINGLETON, "123"), "s:123")
+    T.eq(ty.toSimplified(123), 123)
+    T.eq(ty.toSimplified("123"), "123")
 
     // strict
     passes(true, ty, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar")
@@ -86,29 +91,6 @@ test('smart or with primatives', () => {
     T.eq(ty.toSimplified("123"), "123")
 })
 
-test('smart date', () => {
-    let ty = V.DATE()
-    T.eq(ty.description, "date")
-    T.eq(ty.canBeUndefined, false)
-    T.eq(ty.keys, undefined)
-    T.eq(ty.visit(TestVisitor.SINGLETON, new Date(1234)), "Date()")
-
-    // strict
-    passes(true, ty, new Date(123456789))
-    fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false })
-
-    // parsing common date strings
-    T.eq(ty.input("2025-11-14"), new Date(Date.UTC(2025, 11 - 1, 14)))
-    T.eq(ty.input("2025-11-14 12:34:56+00"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    T.eq(ty.input("2025-11-14T12:34:56+0000"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    T.eq(ty.input("2025-11-14T12:34:56Z"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
-    T.throws(() => ty.input("12:34:56+00"))
-    T.eq(simplifyOpaqueType(ty.inputReturnError("12:34:56+00")), "Invalid Date string but got string: 12:34:56+00")
-
-    // JSON
-    toFromJSON(ty, new Date(1234567890), 1234567890)
-})
-
 class MyObjA { }
 class MyObjB extends MyObjA { }
 
@@ -129,4 +111,52 @@ test('smart class', () => {
 
     T.throws(() => ty.toJSON(a))
     T.throws(() => ty.fromJSON(null))
+})
+
+test('smart date', () => {
+    let ty = V.DATE()
+    T.eq(ty.description, "date")
+    T.eq(ty.canBeUndefined, false)
+    T.eq(ty.keys, undefined)
+    T.eq(ty.visit(TestVisitor.SINGLETON, new Date(1234)), "Date()")
+    T.eq(ty.toSimplified(new Date(1234)), "Date(1234)")
+
+    // strict
+    passes(true, ty, new Date(123456789))
+    fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", "a", "foo bar", "0", "123", "12bar", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false })
+
+    // parsing common date strings
+    T.eq(ty.input("2025-11-14"), new Date(Date.UTC(2025, 11 - 1, 14)))
+    T.eq(ty.input("2025-11-14 12:34:56+00"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
+    T.eq(ty.input("2025-11-14T12:34:56+0000"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
+    T.eq(ty.input("2025-11-14T12:34:56Z"), new Date(Date.UTC(2025, 11 - 1, 14, 12, 34, 56)))
+    T.throws(() => ty.input("12:34:56+00"))
+    T.eq(simplifyOpaqueType(ty.inputReturnError("12:34:56+00")), "Invalid Date string but got string: 12:34:56+00")
+
+    // JSON
+    toFromJSON(ty, new Date(1234567890), 1234567890)
+})
+
+test('smart regexp', () => {
+    let ty = V.REGEXP()
+    T.eq(ty.description, "regexp")
+    T.eq(ty.canBeUndefined, false)
+    T.eq(ty.keys, undefined)
+    T.eq(ty.visit(TestVisitor.SINGLETON, /foo/gi), "RegExp()")
+    T.eq(ty.toSimplified(/foo/gi), "/foo/gi")
+
+    // strict
+    passes(true, ty, /foo/gi)
+    fails(true, ty, undefined, null, false, true, 0, 1, -1, 123.4, -567.68, Number.EPSILON, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN, "", [], [1], [2, 1], [3, "a", 1], {}, { a: 1 }, { b: 2, a: 1 }, [321, "123", 0], ["123", 123], [321, "123", 0], ["123", 123, true], [321, "123", true, true], { x: "foo", s: "bar", b: false }, new Date(123456789))
+
+    // parsing regexp from strings - either it's a static string, or it's a regex if it has the right form with slashes.
+    T.eq(ty.input("foo"), /foo/)
+    T.eq(ty.input("foo/bar"), /foo\/bar/)
+    T.eq(ty.input("/bar/m"), /bar/m)
+    T.eq(ty.input("/bar/gi"), /bar/gi)
+    T.throws(() => ty.input("taco\\"))
+    T.eq(simplifyOpaqueType(ty.inputReturnError("taco\\")), "SyntaxError: Invalid regular expression: /taco\\/: \\ at end of pattern but got string: taco\\")
+
+    // JSON
+    toFromJSON(ty, /foo/gi, "/foo/gi")
 })

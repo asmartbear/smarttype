@@ -21,7 +21,7 @@ class SmartDate extends SmartType<Date, number> {
     }
 
     toJSON(x: Date) {
-        return x.getTime()
+        return x.getTime()      // the most efficient representation
     }
 
     fromJSON(x: number) {
